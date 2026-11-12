@@ -8,9 +8,13 @@
           "name": "Naam",
           "host": "Hostnaam of IP-adres",
           "port": "Poort",
-          "protocol": "Protocol"
+          "protocol": "Protocol",
+          "qth_locator": "QTH-locator (bv. JO32wd) — bepaalt het midden van de kaart"
         }
       }
+    },
+    "error": {
+      "invalid_qth_locator": "Ongeldige QTH-locator. Gebruik bijvoorbeeld JO32 of JO32wd."
     },
     "abort": {
       "already_configured": "Deze PstRotator-instantie is al geconfigureerd."
@@ -26,9 +30,15 @@
           "protocol": "Protocol",
           "elevation": "Vaste elevatie (graden, alleen voor rotctld)",
           "custom_template": "Custom command template (gebruik {az})",
-          "custom_is_udp": "Custom command via UDP (uit = TCP)"
+          "custom_is_udp": "Custom command via UDP (uit = TCP)",
+          "qth_locator": "QTH-locator (bv. JO32wd) — heeft voorrang op onderstaande coördinaten",
+          "home_latitude": "Thuislocatie breedtegraad (optioneel, i.p.v. QTH-locator)",
+          "home_longitude": "Thuislocatie lengtegraad (optioneel, i.p.v. QTH-locator)"
         }
       }
+    },
+    "error": {
+      "invalid_qth_locator": "Ongeldige QTH-locator. Gebruik bijvoorbeeld JO32 of JO32wd."
     }
   }
 }

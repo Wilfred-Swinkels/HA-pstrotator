@@ -94,6 +94,7 @@
 
     set hass(hass) {
       this._hass = hass;
+      this._maybeRedrawBase();
       this._updateDynamic();
     }
 
@@ -105,15 +106,40 @@
       if (this._config && !this._built) this._render();
     }
 
+    // Home location priority: explicit card config, then the attributes
+    // PstRotator's number entity exposes (QTH locator / manual override
+    // resolved by the integration), then Home Assistant's own home zone.
     _homeLocation() {
       const cfg = this._config;
+      const attrs = this._hass?.states?.[cfg.entity]?.attributes || {};
       const lat =
-        cfg.home_latitude != null ? cfg.home_latitude : this._hass?.config?.latitude;
+        cfg.home_latitude != null
+          ? cfg.home_latitude
+          : attrs.home_latitude != null
+          ? attrs.home_latitude
+          : this._hass?.config?.latitude;
       const lon =
         cfg.home_longitude != null
           ? cfg.home_longitude
+          : attrs.home_longitude != null
+          ? attrs.home_longitude
           : this._hass?.config?.longitude;
       return { lat: Number(lat) || 0, lon: Number(lon) || 0 };
+    }
+
+    async _maybeRedrawBase() {
+      if (!this._svg) return;
+      const home = this._homeLocation();
+      const prev = this._drawnHome;
+      if (
+        prev &&
+        Math.abs(prev.lat - home.lat) < 1e-4 &&
+        Math.abs(prev.lon - home.lon) < 1e-4
+      ) {
+        return;
+      }
+      await this._drawBase();
+      this._updateDynamic();
     }
 
     _currentAzimuth() {
@@ -235,7 +261,9 @@
     async _drawBase() {
       const cfg = this._config;
       const land = await loadLandData();
-      const { lat: lat0, lon: lon0 } = this._homeLocation();
+      const home = this._homeLocation();
+      this._drawnHome = home;
+      const { lat: lat0, lon: lon0 } = home;
       const R = this._R;
       const cx = this._cx;
       const cy = this._cy;

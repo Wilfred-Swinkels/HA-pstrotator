@@ -8,9 +8,13 @@
           "name": "Name",
           "host": "Host or IP address",
           "port": "Port",
-          "protocol": "Protocol"
+          "protocol": "Protocol",
+          "qth_locator": "QTH locator (e.g. JO32wd) — sets the center of the map"
         }
       }
+    },
+    "error": {
+      "invalid_qth_locator": "Invalid QTH locator. Try something like JO32 or JO32wd."
     },
     "abort": {
       "already_configured": "This PstRotator instance is already configured."
@@ -26,9 +30,15 @@
           "protocol": "Protocol",
           "elevation": "Fixed elevation (degrees, rotctld only)",
           "custom_template": "Custom command template (use {az})",
-          "custom_is_udp": "Send custom command over UDP (off = TCP)"
+          "custom_is_udp": "Send custom command over UDP (off = TCP)",
+          "qth_locator": "QTH locator (e.g. JO32wd) — takes priority over the coordinates below",
+          "home_latitude": "Home latitude (optional, instead of a QTH locator)",
+          "home_longitude": "Home longitude (optional, instead of a QTH locator)"
         }
       }
+    },
+    "error": {
+      "invalid_qth_locator": "Invalid QTH locator. Try something like JO32 or JO32wd."
     }
   }
 }

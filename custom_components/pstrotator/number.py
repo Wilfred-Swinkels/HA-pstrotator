@@ -13,6 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
+from .home_location import resolve_home_location
 from .rotator import PstRotatorClient, PstRotatorConnectionError
 
 _LOGGER = logging.getLogger(__name__)
@@ -51,6 +52,17 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             manufacturer="YO3DMU",
             model="PstRotator",
         )
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Expose the resolved home location so the map card can use it."""
+        lat, lon, locator = resolve_home_location(
+            self.hass, self._entry.data, self._entry.options
+        )
+        attrs = {"home_latitude": lat, "home_longitude": lon}
+        if locator:
+            attrs["qth_locator"] = locator
+        return attrs
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

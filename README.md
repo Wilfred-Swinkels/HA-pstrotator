@@ -18,10 +18,15 @@ klik op de kaart en de antennerotor draait direct die richting op.
   van elk punt op de kaart ten opzichte van het midden is *exact* de
   werkelijke kompaskoers (great-circle bearing) — precies wat een
   rotor nodig heeft.
-  - Klik ergens op de kaart → de rotor draait naar die richting.
+  - Klik ergens op de kaart, of houd de muisknop ingedrukt en sleep de lijn
+    rond → de rotor draait mee naar die richting.
   - `+5°` / `−5°` knoppen (stapgrootte instelbaar) om bij te sturen.
+  - De richtingslijn is altijd exact de straal van de cirkel (vaste lengte,
+    geen pijl) — alleen de hoek verandert.
   - Gekleurde continenten/oceaan, afstandscirkels (5000/10000/15000 km) en
     een kompasroos met N/E/S/W.
+  - Thuislocatie instelbaar via **QTH-locator** (bv. `JO32wd`), handmatige
+    coördinaten, of automatisch de HA-thuislocatie.
 
 ## Installatie via HACS
 
@@ -39,9 +44,11 @@ netwerkinterface van PstRotator:
 1. Open PstRotator → **Settings** → **Rotor interfacing** (of vergelijkbaar,
    afhankelijk van je versie) → schakel **"Hamlib Net rotctl"** (rotctld
    emulation) in.
-2. Noteer het IP-adres van de PC waarop PstRotator draait en de ingestelde
-   poort (standaard `4533`).
-3. Vul dit in tijdens het instellen van de integratie in Home Assistant.
+2. Noteer het **IP-adres** van de PC waarop PstRotator draait en de
+   ingestelde poort (standaard `4533`).
+3. Vul dit **host/IP-adres en poort** in tijdens het instellen van de
+   integratie in Home Assistant (en later aanpasbaar via de opties van de
+   integratie).
 
 Gebruikt jouw PstRotator-opstelling een ander netwerkprotocol (bijvoorbeeld
 de UDP-interface voor de PstRotatorAZ-app)? Kies dan in de
@@ -51,6 +58,25 @@ template in, met `{az}` als plaatshouder voor de azimuth, bijvoorbeeld:
 ```
 AZ{az:.1f}\n
 ```
+
+## Thuislocatie (midden van de kaart)
+
+Het midden van de kaart — en dus de nulreferentie voor elke berekende
+richting — wordt bepaald door, in volgorde van voorrang:
+
+1. Een **QTH-locator** (Maidenhead grid square, bv. `JO32` of preciezer
+   `JO32wd`), in te vullen bij het instellen of via de opties van de
+   integratie. Dit is de aanbevolen manier: nauwkeuriger dan een land en
+   voor radioamateurs de gebruikelijke notatie.
+2. Handmatige **breedte-/lengtegraad**, ook via de integratie-opties, voor
+   wie liever gewone coördinaten gebruikt.
+3. Anders automatisch de **HA-thuislocatie** (zoals ingesteld onder
+   **Instellingen → Systeem → Algemeen**).
+
+Deze locatie wordt automatisch doorgegeven aan de kaart via de
+`number`-entiteit — je hoeft niets in de kaart-configuratie zelf aan te
+passen, tenzij je bewust wilt overschrijven (zie `home_latitude` /
+`home_longitude` hieronder).
 
 ## De kaart toevoegen aan je dashboard
 
@@ -71,7 +97,7 @@ Optionele configuratie-opties:
 | `entity` | **(verplicht)** De `number`-entiteit van PstRotator | — |
 | `title` | Titel boven de kaart | `PstRotator` |
 | `step` | Stapgrootte van de +/− knoppen | `5` |
-| `home_latitude` / `home_longitude` | Overschrijf de HA-thuislocatie | HA-thuislocatie |
+| `home_latitude` / `home_longitude` | Overschrijf de locatie uit de integratie/HA | zie "Thuislocatie" hierboven |
 | `land_color`, `ocean_from`, `ocean_to`, `line_color` | Kleuren aanpassen | zie `pstrotator-card.js` |
 
 Als de kaart niet automatisch verschijnt in de resource-lijst, voeg hem
