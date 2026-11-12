@@ -1,115 +1,115 @@
-# PstRotator voor Home Assistant
+*[Lees dit in het Nederlands](README.nl.md)*
+
+# PstRotator for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-Besturing van [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU)
-vanuit Home Assistant, met een kleurrijke, interactieve azimutale wereldkaart:
-klik op de kaart en de antennerotor draait direct die richting op.
+Control [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU)
+from Home Assistant with a colorful, interactive azimuthal world map: click
+anywhere on the map and the antenna rotator turns straight to that bearing.
 
-## Wat zit erin
+## What's included
 
-- **Backend-integratie** die een `number`-entiteit aanmaakt voor de
-  gecommandeerde azimuth. Elke wijziging (via de kaart, de HA-UI, een
-  service-call of een automation) wordt doorgestuurd naar PstRotator over
-  het netwerk.
-- **Lovelace-kaart** (`pstrotator-card`) met een **azimutale equidistante
-  wereldkaart**, gecentreerd op je HA-thuislocatie. Dit projectietype is
-  bewust gekozen (in plaats van een gewone Mercator-wereldkaart): de hoek
-  van elk punt op de kaart ten opzichte van het midden is *exact* de
-  werkelijke kompaskoers (great-circle bearing) — precies wat een
-  rotor nodig heeft.
-  - Klik ergens op de kaart, of houd de muisknop ingedrukt en sleep de lijn
-    rond → de rotor draait mee naar die richting.
-  - `+5°` / `−5°` knoppen (stapgrootte instelbaar) om bij te sturen.
-  - De richtingslijn is altijd exact de straal van de cirkel (vaste lengte,
-    geen pijl) — alleen de hoek verandert.
-  - Gekleurde continenten/oceaan, afstandscirkels (5000/10000/15000 km) en
-    een kompasroos met N/E/S/W.
-  - Thuislocatie instelbaar via **QTH-locator** (bv. `JO32wd`), handmatige
-    coördinaten, of automatisch de HA-thuislocatie.
+- **Backend integration** that creates a `number` entity for the commanded
+  azimuth. Every change (from the map, the HA UI, a service call, or an
+  automation) is forwarded to PstRotator over the network.
+- **Lovelace card** (`pstrotator-card`) with an **azimuthal-equidistant
+  world map** centered on your HA home location. This projection was
+  chosen deliberately instead of a plain Mercator world map: the angle of
+  every point on the map relative to the center is *exactly* the true
+  compass bearing (great-circle bearing) — precisely what a rotator needs.
+  - Click anywhere on the map, or press and hold the line and drag it
+    around → the rotator follows that direction.
+  - `+5°` / `−5°` buttons (step size configurable) for fine adjustment.
+  - The direction line is always exactly the radius of the circle (fixed
+    length, no arrowhead) — only the angle changes.
+  - Colored continents/ocean, distance rings (5000/10000/15000 km), and a
+    compass rose with N/E/S/W.
+  - Home location configurable via a **QTH locator** (e.g. `JO32wd`),
+    manual coordinates, or automatically from Home Assistant's own home
+    location.
 
-## Installatie via HACS
+## Installation via HACS
 
-1. HACS → rechtsboven **⋮** → **Custom repositories**.
-2. Voeg deze repository-URL toe, categorie **Integration**.
-3. Zoek naar **PstRotator** in HACS en installeer.
-4. Herstart Home Assistant.
-5. **Instellingen → Apparaten & diensten → Integratie toevoegen → PstRotator**.
+1. HACS → top-right **⋮** → **Custom repositories**.
+2. Add this repository URL, category **Integration**.
+3. Search for **PstRotator** in HACS and install it.
+4. Restart Home Assistant.
+5. **Settings → Devices & services → Add integration → PstRotator**.
 
-## PstRotator configureren
+## Configuring PstRotator
 
-Deze integratie praat standaard met de **Hamlib `rotctld`-compatibele**
-netwerkinterface van PstRotator:
+By default this integration talks to PstRotator's **Hamlib
+`rotctld`-compatible** network interface:
 
-1. Open PstRotator → **Settings** → **Rotor interfacing** (of vergelijkbaar,
-   afhankelijk van je versie) → schakel **"Hamlib Net rotctl"** (rotctld
-   emulation) in.
-2. Noteer het **IP-adres** van de PC waarop PstRotator draait en de
-   ingestelde poort (standaard `4533`).
-3. Vul dit **host/IP-adres en poort** in tijdens het instellen van de
-   integratie in Home Assistant (en later aanpasbaar via de opties van de
-   integratie).
+1. In PstRotator, open **Settings** → **Rotor interfacing** (naming may
+   vary by version) → enable **"Hamlib Net rotctl"** (rotctld emulation).
+2. Note the **IP address** of the PC running PstRotator and the configured
+   port (default `4533`).
+3. Enter this **host/IP address and port** when setting up the integration
+   in Home Assistant (and adjustable later through the integration's
+   options).
 
-Gebruikt jouw PstRotator-opstelling een ander netwerkprotocol (bijvoorbeeld
-de UDP-interface voor de PstRotatorAZ-app)? Kies dan in de
-integratie-opties **"Custom text command"** en stel je eigen commando-
-template in, met `{az}` als plaatshouder voor de azimuth, bijvoorbeeld:
+Does your PstRotator setup use a different network protocol (e.g. the UDP
+interface used by the PstRotatorAZ app)? Choose **"Custom text command"**
+in the integration options and set your own command template, using `{az}`
+as a placeholder for the azimuth, for example:
 
 ```
 AZ{az:.1f}\n
 ```
 
-## Thuislocatie (midden van de kaart)
+## Home location (map center)
 
-Het midden van de kaart — en dus de nulreferentie voor elke berekende
-richting — wordt bepaald door, in volgorde van voorrang:
+The center of the map — and therefore the zero reference for every
+computed bearing — is determined in this order of priority:
 
-1. Een **QTH-locator** (Maidenhead grid square, bv. `JO32` of preciezer
-   `JO32wd`), in te vullen bij het instellen of via de opties van de
-   integratie. Dit is de aanbevolen manier: nauwkeuriger dan een land en
-   voor radioamateurs de gebruikelijke notatie.
-2. Handmatige **breedte-/lengtegraad**, ook via de integratie-opties, voor
-   wie liever gewone coördinaten gebruikt.
-3. Anders automatisch de **HA-thuislocatie** (zoals ingesteld onder
-   **Instellingen → Systeem → Algemeen**).
+1. A **QTH locator** (Maidenhead grid square, e.g. `JO32` or, more
+   precisely, `JO32wd`), entered during setup or via the integration's
+   options. This is the recommended approach: more precise than a country,
+   and the notation amateur radio operators already use.
+2. Manual **latitude/longitude**, also via the integration's options, for
+   anyone who prefers plain coordinates.
+3. Otherwise, automatically, Home Assistant's own **home location** (as
+   set under **Settings → System → General**).
 
-Deze locatie wordt automatisch doorgegeven aan de kaart via de
-`number`-entiteit — je hoeft niets in de kaart-configuratie zelf aan te
-passen, tenzij je bewust wilt overschrijven (zie `home_latitude` /
-`home_longitude` hieronder).
+This location is passed to the card automatically via the `number` entity
+— you don't need to change anything in the card configuration itself,
+unless you deliberately want to override it (see `home_latitude` /
+`home_longitude` below).
 
-## De kaart toevoegen aan je dashboard
+## Adding the card to your dashboard
 
-Na installatie wordt de kaart automatisch als Lovelace-resource geregistreerd.
-Voeg daarna een kaart toe met:
+After installation the card is automatically registered as a Lovelace
+resource. Then add a card with:
 
 ```yaml
 type: custom:pstrotator-card
 entity: number.pstrotator_azimuth
-title: Antenne richting
+title: Antenna heading
 step: 5
 ```
 
-Optionele configuratie-opties:
+Optional configuration options:
 
-| Optie | Omschrijving | Standaard |
+| Option | Description | Default |
 |---|---|---|
-| `entity` | **(verplicht)** De `number`-entiteit van PstRotator | — |
-| `title` | Titel boven de kaart | `PstRotator` |
-| `step` | Stapgrootte van de +/− knoppen | `5` |
-| `home_latitude` / `home_longitude` | Overschrijf de locatie uit de integratie/HA | zie "Thuislocatie" hierboven |
-| `land_color`, `ocean_from`, `ocean_to`, `line_color` | Kleuren aanpassen | zie `pstrotator-card.js` |
+| `entity` | **(required)** PstRotator's `number` entity | — |
+| `title` | Title shown above the card | `PstRotator` |
+| `step` | Step size of the +/− buttons | `5` |
+| `home_latitude` / `home_longitude` | Override the location from the integration/HA | see "Home location" above |
+| `land_color`, `ocean_from`, `ocean_to`, `line_color` | Customize colors | see `pstrotator-card.js` |
 
-Als de kaart niet automatisch verschijnt in de resource-lijst, voeg hem
-handmatig toe via **Instellingen → Dashboards → Resources**:
+If the card doesn't appear automatically in the resource list, add it
+manually via **Settings → Dashboards → Resources**:
 
 - URL: `/pstrotator_files/pstrotator-card.js`
 - Type: JavaScript module
 
 ## Services / automations
 
-De integratie gebruikt de standaard `number.set_value`-service, dus je kunt
-de azimuth ook rechtstreeks vanuit automations aansturen:
+The integration uses the standard `number.set_value` service, so you can
+drive the azimuth directly from automations too:
 
 ```yaml
 action: number.set_value
@@ -119,12 +119,12 @@ data:
   value: 123.4
 ```
 
-## Kaartdata
+## Map data
 
-De werelddata (continenten) komt van [Natural Earth](https://www.naturalearthdata.com/)
-(110m resolutie, publiek domein) en wordt lokaal meegeleverd — er wordt geen
-externe data opgehaald tijdens gebruik.
+The world data (continents) comes from [Natural Earth](https://www.naturalearthdata.com/)
+(110m resolution, public domain) and is bundled locally — no external data
+is fetched at runtime.
 
-## Licentie
+## License
 
-MIT, zie [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
