@@ -22,14 +22,22 @@ anywhere on the map and the antenna rotator turns straight to that bearing.
   compass bearing (great-circle bearing) — precisely what a rotator needs.
   - Click anywhere on the map, or press and hold the line and drag it
     around → the rotator follows that direction.
-  - `+5°` / `−5°` buttons (step size configurable) for fine adjustment.
+  - `+5°` / `−5°` buttons (step size configurable) for fine adjustment, and
+    zoom in/out buttons above them (the full-world view is the maximum
+    zoom-out level).
   - The direction line is always exactly the radius of the circle (fixed
     length, no arrowhead) — only the angle changes.
-  - Colored continents/ocean, distance rings (5000/10000/15000 km), and a
-    compass rose with N/E/S/W.
+  - Colored continents/ocean, distance rings, and a compass rose with
+    N/E/S/W.
   - Home location configurable via a **QTH locator** (e.g. `JO32wd`),
     manual coordinates, or automatically from Home Assistant's own home
     location.
+  - Card text follows Home Assistant's own language (English/Dutch for
+    now, falling back to English).
+- **Storm position**: configure an azimuth and a wind speed sensor +
+  threshold, and the antenna automatically turns to that azimuth once wind
+  speed crosses the threshold. A **Storm** button also appears on the card
+  for turning to it manually at any time.
 
 ## Installation via HACS
 
@@ -82,6 +90,21 @@ This location is passed to the card automatically via the `number` entity
 — you don't need to change anything in the card configuration itself,
 unless you deliberately want to override it (see `home_latitude` /
 `home_longitude` below).
+
+## Storm position
+
+Open the integration's options (**Settings → Devices & services →
+PstRotator → ⋮ → Options**) and pick **Storm** from the menu:
+
+- **Storm position azimuth** — where the antenna should turn to.
+- **Wind speed sensor** — pick any `sensor` entity that reports wind speed
+  (e.g. from a local weather station integration).
+- **Wind threshold** — once the sensor's value goes above this, the
+  antenna turns to the storm azimuth automatically (in whatever unit that
+  sensor reports in).
+
+Leave the wind speed sensor empty to turn this off. Either way, the
+**Storm** button on the card always lets you turn to that azimuth by hand.
 
 ## Adding the card to your dashboard
 

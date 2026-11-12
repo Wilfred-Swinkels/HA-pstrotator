@@ -53,6 +53,10 @@ class PstRotatorClient:
             return self._options[key]
         return self._data.get(key, default)
 
+    def get_option(self, key, default=None):
+        """Public accessor for config entry data/options (options win)."""
+        return self._conf(key, default)
+
     async def async_set_azimuth(self, azimuth: float) -> None:
         """Send a new target azimuth to PstRotator."""
         protocol = self._conf(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP)

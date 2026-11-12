@@ -24,6 +24,13 @@
     "step": {
       "init": {
         "title": "PstRotator-opties",
+        "menu_options": {
+          "connection": "Verbinding",
+          "storm": "Storm"
+        }
+      },
+      "connection": {
+        "title": "Verbinding met PstRotator",
         "data": {
           "host": "Hostnaam of IP-adres",
           "port": "Poort",
@@ -34,6 +41,15 @@
           "qth_locator": "QTH-locator (bv. JO32wd) — heeft voorrang op onderstaande coördinaten",
           "home_latitude": "Thuislocatie breedtegraad (optioneel, i.p.v. QTH-locator)",
           "home_longitude": "Thuislocatie lengtegraad (optioneel, i.p.v. QTH-locator)"
+        }
+      },
+      "storm": {
+        "title": "Stormstand",
+        "description": "Stel een azimuth in waar de antenne automatisch naartoe draait zodra de windsnelheid boven de ingestelde drempel komt. Laat het windsensor-veld leeg om dit uit te zetten.",
+        "data": {
+          "storm_azimuth": "Stormstand azimuth (graden)",
+          "wind_speed_entity": "Windsnelheid-sensor",
+          "wind_speed_threshold": "Winddrempel (zelfde eenheid als de sensor)"
         }
       }
     },

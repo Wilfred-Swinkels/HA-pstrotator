@@ -7,6 +7,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.helpers import selector
 
 from .const import (
     CONF_CUSTOM_IS_UDP,
@@ -18,6 +19,9 @@ from .const import (
     CONF_PORT,
     CONF_PROTOCOL,
     CONF_QTH_LOCATOR,
+    CONF_STORM_AZIMUTH,
+    CONF_WIND_SPEED_ENTITY,
+    CONF_WIND_SPEED_THRESHOLD,
     DEFAULT_CUSTOM_TEMPLATE,
     DEFAULT_NAME,
     DEFAULT_PSTROTATOR_UDP_PORT,
@@ -92,22 +96,35 @@ class PstRotatorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class PstRotatorOptionsFlow(config_entries.OptionsFlow):
-    """Handle PstRotator options."""
+    """Handle PstRotator options, presented as a menu."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry
 
+    def _current(self) -> dict[str, Any]:
+        return {**self._config_entry.data, **self._config_entry.options}
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["connection", "storm"],
+        )
+
+    async def async_step_connection(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
         errors: dict[str, str] = {}
+        current = self._current()
 
         if user_input is not None:
             _validate_qth_locator(user_input, errors)
             if not errors:
-                return self.async_create_entry(title="", data=user_input)
+                return self.async_create_entry(
+                    title="", data={**current, **user_input}
+                )
 
-        current = {**self._config_entry.data, **self._config_entry.options}
         schema = vol.Schema(
             {
                 vol.Required(CONF_HOST, default=current.get(CONF_HOST, "")): str,
@@ -140,4 +157,33 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
                 ): str,
             }
         )
-        return self.async_show_form(step_id="init", data_schema=schema, errors=errors)
+        return self.async_show_form(
+            step_id="connection", data_schema=schema, errors=errors
+        )
+
+    async def async_step_storm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        current = self._current()
+
+        if user_input is not None:
+            return self.async_create_entry(title="", data={**current, **user_input})
+
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_STORM_AZIMUTH, default=current.get(CONF_STORM_AZIMUTH, "")
+                ): str,
+                vol.Optional(
+                    CONF_WIND_SPEED_ENTITY,
+                    default=current.get(CONF_WIND_SPEED_ENTITY, ""),
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="sensor")
+                ),
+                vol.Optional(
+                    CONF_WIND_SPEED_THRESHOLD,
+                    default=current.get(CONF_WIND_SPEED_THRESHOLD, ""),
+                ): str,
+            }
+        )
+        return self.async_show_form(step_id="storm", data_schema=schema)

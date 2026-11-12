@@ -1,13 +1,45 @@
 /**
  * PstRotator Card
  * Azimuthal-equidistant world map centered on the Home Assistant home
- * location. Click anywhere on the map to send that bearing to PstRotator,
- * or nudge the current bearing with the +/- buttons.
+ * location. Click or drag the line to send a bearing to PstRotator, nudge
+ * it with the +/- buttons, zoom in/out, or jump to a configured storm
+ * position.
  */
 (() => {
   const LAND_URL = "/pstrotator_files/land-110m.json";
   const DEG = Math.PI / 180;
   const EARTH_HALF_CIRCUMFERENCE_KM = 20015;
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 12;
+
+  const STRINGS = {
+    en: {
+      hint: "Click or drag the line to point the rotor that way",
+      missingEntity:
+        "pstrotator-card: set 'entity' to PstRotator's azimuth number entity.",
+      storm: "Storm",
+      zoomIn: "Zoom in",
+      zoomOut: "Zoom out",
+    },
+    nl: {
+      hint: "Klik of sleep de lijn om de rotor die richting te laten draaien",
+      missingEntity:
+        "pstrotator-card: stel 'entity' in op de azimuth number-entiteit van PstRotator.",
+      storm: "Storm",
+      zoomIn: "Inzoomen",
+      zoomOut: "Uitzoomen",
+    },
+  };
+
+  function pickLang(hass) {
+    const lang = (hass && (hass.language || hass.locale?.language)) || "en";
+    return STRINGS[lang] ? lang : "en";
+  }
+
+  function niceKm(km) {
+    if (km >= 1000) return `${Math.round(km / 100) / 10}k km`;
+    return `${Math.round(km)} km`;
+  }
 
   let landDataPromise = null;
   function loadLandData() {
@@ -29,8 +61,10 @@
 
   // Azimuthal-equidistant projection centered on (lat0, lon0).
   // The returned angle `az` is the true great-circle bearing from the
-  // center to (lat, lon) -- exactly the value PstRotator needs.
-  function projectPoint(lat0, lon0, lat, lon, R) {
+  // center to (lat, lon) -- exactly the value PstRotator needs. `maxAngle`
+  // is the great-circle distance (radians) mapped to radius R -- Math.PI
+  // (the whole world) at zoom level 1, smaller as the map zooms in.
+  function projectPoint(lat0, lon0, lat, lon, R, maxAngle = Math.PI) {
     const phi1 = toRad(lat0);
     const lambda0 = toRad(lon0);
     const phi = toRad(lat);
@@ -49,7 +83,7 @@
         Math.sin(phi1) * Math.cos(phi) * Math.cos(dLambda)
     );
 
-    const r = (c / Math.PI) * R;
+    const r = (c / maxAngle) * R;
     const x = r * Math.sin(theta);
     const y = -r * Math.cos(theta);
     return { x, y, c, az: wrap360(theta / DEG) };
@@ -71,9 +105,7 @@
 
     setConfig(config) {
       if (!config || !config.entity) {
-        throw new Error(
-          "pstrotator-card: stel 'entity' in op de azimuth number-entiteit van PstRotator."
-        );
+        throw new Error(STRINGS.en.missingEntity);
       }
       this._config = {
         step: 5,
@@ -89,6 +121,7 @@
       this._dragging = false;
       this._dragAzimuth = null;
       this._lastSendTime = 0;
+      this._zoom = MIN_ZOOM;
       this._render();
     }
 
@@ -125,6 +158,11 @@
           ? attrs.home_longitude
           : this._hass?.config?.longitude;
       return { lat: Number(lat) || 0, lon: Number(lon) || 0 };
+    }
+
+    _stormAzimuth() {
+      const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
+      return attrs.storm_azimuth != null ? Number(attrs.storm_azimuth) : null;
     }
 
     async _maybeRedrawBase() {
@@ -165,17 +203,46 @@
           }
           .header {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             justify-content: space-between;
             padding: 12px 16px 0 16px;
+            gap: 8px;
+          }
+          .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
           }
           .title {
             font-size: 1.1rem;
             font-weight: 500;
             color: var(--primary-text-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .storm-btn {
+            display: none;
+            flex: none;
+            border: none;
+            border-radius: 14px;
+            padding: 3px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #fff;
+            background: #c23b22;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+          }
+          .storm-btn:hover {
+            filter: brightness(1.1);
           }
           .az-readout {
-            font-size: 1.4rem;
+            flex: none;
+            font-size: 1.3rem;
             font-weight: 600;
             color: var(--primary-text-color);
             font-variant-numeric: tabular-nums;
@@ -221,6 +288,36 @@
           .nudge.plus {
             right: 20px;
           }
+          .zoom {
+            position: absolute;
+            bottom: 64px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #fff;
+            background: var(--pstrotator-accent, #2f7fb8);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            opacity: 0.85;
+            transition: transform 0.08s ease-in-out;
+          }
+          .zoom:hover {
+            opacity: 1;
+            transform: scale(1.08);
+          }
+          .zoom:active {
+            transform: scale(0.94);
+          }
+          .zoom.zoom-out {
+            left: 24px;
+          }
+          .zoom.zoom-in {
+            right: 24px;
+          }
           .hint {
             text-align: center;
             font-size: 0.78rem;
@@ -230,15 +327,20 @@
         </style>
         <ha-card>
           <div class="header">
-            <div class="title">${cfg.title ? cfg.title : ""}</div>
-            <div class="az-readout" id="az-readout">--.-&deg;</div>
+            <div class="header-left">
+              <div class="title">${cfg.title ? cfg.title : ""}</div>
+              <button class="storm-btn" id="storm-btn"></button>
+            </div>
+            <div class="az-readout" id="az-readout">Az: --.-&deg;</div>
           </div>
           <div class="map-wrap">
             <svg id="svg" viewBox="0 0 380 380"></svg>
+            <button class="zoom zoom-out" id="zoom-out">&minus;</button>
+            <button class="zoom zoom-in" id="zoom-in">+</button>
             <button class="nudge minus" id="minus">&minus;${cfg.step}&deg;</button>
             <button class="nudge plus" id="plus">+${cfg.step}&deg;</button>
           </div>
-          <div class="hint">Klik op de kaart om de rotor die richting te laten draaien</div>
+          <div class="hint" id="hint"></div>
         </ha-card>
       `;
 
@@ -249,11 +351,41 @@
       this.shadowRoot
         .getElementById("plus")
         .addEventListener("click", () => this._nudge(cfg.step));
+      this.shadowRoot
+        .getElementById("zoom-in")
+        .addEventListener("click", () => this._setZoom(this._zoom * 1.6));
+      this.shadowRoot
+        .getElementById("zoom-out")
+        .addEventListener("click", () => this._setZoom(this._zoom / 1.6));
+      this.shadowRoot
+        .getElementById("storm-btn")
+        .addEventListener("click", () => this._goStorm());
       this._svg.addEventListener("pointerdown", (ev) => this._onPointerDown(ev));
       this._svg.addEventListener("pointermove", (ev) => this._onPointerMove(ev));
       this._svg.addEventListener("pointerup", (ev) => this._onPointerUp(ev));
       this._svg.addEventListener("pointercancel", (ev) => this._onPointerUp(ev));
 
+      this._applyStrings();
+      await this._drawBase();
+      this._updateDynamic();
+    }
+
+    _applyStrings() {
+      const t = STRINGS[pickLang(this._hass)];
+      const hint = this.shadowRoot.getElementById("hint");
+      if (hint) hint.textContent = t.hint;
+      const stormBtn = this.shadowRoot.getElementById("storm-btn");
+      if (stormBtn) stormBtn.textContent = t.storm;
+      const zoomIn = this.shadowRoot.getElementById("zoom-in");
+      const zoomOut = this.shadowRoot.getElementById("zoom-out");
+      if (zoomIn) zoomIn.title = t.zoomIn;
+      if (zoomOut) zoomOut.title = t.zoomOut;
+    }
+
+    async _setZoom(zoom) {
+      const clamped = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+      if (Math.abs(clamped - this._zoom) < 1e-6) return;
+      this._zoom = clamped;
       await this._drawBase();
       this._updateDynamic();
     }
@@ -267,6 +399,8 @@
       const R = this._R;
       const cx = this._cx;
       const cy = this._cy;
+      const maxAngle = Math.PI / this._zoom;
+      const maxKm = EARTH_HALF_CIRCUMFERENCE_KM / this._zoom;
       const svg = this._svg;
       svg.innerHTML = "";
 
@@ -310,15 +444,16 @@
         })
       );
 
-      // Distance rings
+      // Distance rings: fixed fractions of the radius, labeled with the
+      // real-world distance they represent at the current zoom level.
       const ringGroup = svgEl("g", { "clip-path": "url(#oceanClip)" });
-      for (const km of [5000, 10000, 15000]) {
-        const r = R * (km / EARTH_HALF_CIRCUMFERENCE_KM);
+      const ringFractions = [1 / 3, 2 / 3, 1];
+      for (const frac of ringFractions) {
         ringGroup.appendChild(
           svgEl("circle", {
             cx,
             cy,
-            r,
+            r: R * frac,
             fill: "none",
             stroke: "#ffffff",
             "stroke-opacity": 0.28,
@@ -328,9 +463,8 @@
         );
       }
       svg.appendChild(ringGroup);
-      for (const km of [5000, 10000, 15000]) {
-        const r = R * (km / EARTH_HALF_CIRCUMFERENCE_KM);
-        if (r < 14) continue;
+      for (const frac of ringFractions) {
+        const r = R * frac;
         const label = svgEl("text", {
           x: cx + 3,
           y: cy - r - 3,
@@ -339,7 +473,7 @@
           "font-size": "8",
           "font-family": "sans-serif",
         });
-        label.textContent = `${km / 1000}k km`;
+        label.textContent = niceKm(maxKm * frac);
         svg.appendChild(label);
       }
 
@@ -353,7 +487,7 @@
           for (const ring of poly) {
             let prev = null;
             for (const [lon, lat] of ring) {
-              const p = projectPoint(lat0, lon0, lat, lon, R);
+              const p = projectPoint(lat0, lon0, lat, lon, R, maxAngle);
               const px = cx + p.x;
               const py = cy + p.y;
               if (prev === null) {
@@ -383,7 +517,7 @@
       });
       svg.appendChild(landPath);
 
-      // Degree ticks + cardinal labels
+      // Degree ticks + cardinal labels (zoom-independent: always the full ring)
       const tickGroup = svgEl("g");
       for (let deg = 0; deg < 360; deg += 10) {
         const rad = deg * DEG;
@@ -443,6 +577,8 @@
       svg.appendChild(homeGroup);
 
       // Needle (azimuth indicator): a thin line along the circle's radius.
+      // Always the full radius -- zoom changes what the map shows, never
+      // the needle's length.
       this._needleLine = svgEl("line", {
         x1: cx,
         y1: cy,
@@ -493,7 +629,7 @@
       this._dragAzimuth = az;
       this._renderNeedle(az);
       const readout = this.shadowRoot.getElementById("az-readout");
-      if (readout) readout.textContent = `${az.toFixed(1)}°`;
+      if (readout) readout.textContent = `Az: ${az.toFixed(1)}°`;
       this._setAzimuth(az);
     }
 
@@ -510,6 +646,12 @@
     _nudge(delta) {
       const az = wrap360(this._currentAzimuth() + delta);
       this._setAzimuth(az, true);
+    }
+
+    _goStorm() {
+      const stormAz = this._stormAzimuth();
+      if (stormAz == null) return;
+      this._setAzimuth(wrap360(stormAz), true);
     }
 
     _setAzimuth(az, force) {
@@ -529,8 +671,6 @@
       const cy = this._cy;
       const R = this._R;
 
-      // The needle is always a full radius of the circle; only its
-      // direction changes, never its length.
       const rad = az * DEG;
       const tip = { x: cx + R * Math.sin(rad), y: cy - R * Math.cos(rad) };
 
@@ -542,12 +682,19 @@
 
     _updateDynamic() {
       if (!this._svg || !this._needleLine) return;
+      this._applyStrings();
+
       const az = this._dragging && this._dragAzimuth != null
         ? this._dragAzimuth
         : this._currentAzimuth();
       const readout = this.shadowRoot.getElementById("az-readout");
-      if (readout) readout.textContent = `${az.toFixed(1)}°`;
+      if (readout) readout.textContent = `Az: ${az.toFixed(1)}°`;
       this._renderNeedle(az);
+
+      const stormBtn = this.shadowRoot.getElementById("storm-btn");
+      if (stormBtn) {
+        stormBtn.style.display = this._stormAzimuth() != null ? "inline-block" : "none";
+      }
     }
   }
 
@@ -556,8 +703,8 @@
   window.customCards = window.customCards || [];
   window.customCards.push({
     type: "pstrotator-card",
-    name: "PstRotator Kaart",
+    name: "PstRotator Card",
     description:
-      "Azimutale wereldkaart om de PstRotator antenne-rotor mee te besturen.",
+      "Azimuthal world map to control a PstRotator antenna rotator.",
   });
 })();

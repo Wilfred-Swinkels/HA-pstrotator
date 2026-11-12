@@ -24,6 +24,13 @@
     "step": {
       "init": {
         "title": "PstRotator options",
+        "menu_options": {
+          "connection": "Connection",
+          "storm": "Storm"
+        }
+      },
+      "connection": {
+        "title": "Connection to PstRotator",
         "data": {
           "host": "Host or IP address",
           "port": "Port",
@@ -34,6 +41,15 @@
           "qth_locator": "QTH locator (e.g. JO32wd) — takes priority over the coordinates below",
           "home_latitude": "Home latitude (optional, instead of a QTH locator)",
           "home_longitude": "Home longitude (optional, instead of a QTH locator)"
+        }
+      },
+      "storm": {
+        "title": "Storm position",
+        "description": "Set an azimuth the antenna automatically turns to once wind speed rises above the configured threshold. Leave the wind sensor field empty to disable this.",
+        "data": {
+          "storm_azimuth": "Storm position azimuth (degrees)",
+          "wind_speed_entity": "Wind speed sensor",
+          "wind_speed_threshold": "Wind threshold (same unit as the sensor)"
         }
       }
     },

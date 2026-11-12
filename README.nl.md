@@ -24,13 +24,21 @@ klik op de kaart en de antennerotor draait direct die richting op.
   rotor nodig heeft.
   - Klik ergens op de kaart, of houd de muisknop ingedrukt en sleep de lijn
     rond → de rotor draait mee naar die richting.
-  - `+5°` / `−5°` knoppen (stapgrootte instelbaar) om bij te sturen.
+  - `+5°` / `−5°` knoppen (stapgrootte instelbaar) om bij te sturen, en
+    zoom in/uit-knoppen erboven (de volledige wereldkaart is het maximale
+    uitzoomniveau).
   - De richtingslijn is altijd exact de straal van de cirkel (vaste lengte,
     geen pijl) — alleen de hoek verandert.
-  - Gekleurde continenten/oceaan, afstandscirkels (5000/10000/15000 km) en
-    een kompasroos met N/E/S/W.
+  - Gekleurde continenten/oceaan, afstandscirkels en een kompasroos met
+    N/E/S/W.
   - Thuislocatie instelbaar via **QTH-locator** (bv. `JO32wd`), handmatige
     coördinaten, of automatisch de HA-thuislocatie.
+  - Teksten op de kaart volgen de taal van Home Assistant (op dit moment
+    Engels/Nederlands, met Engels als terugval).
+- **Stormstand**: stel een azimuth in plus een windsnelheid-sensor en
+  drempelwaarde, en de antenne draait automatisch naar die stand zodra de
+  windsnelheid boven de drempel komt. Er verschijnt ook een **Storm**-knop
+  op de kaart om dit op elk moment handmatig te doen.
 
 ## Installatie via HACS
 
@@ -83,6 +91,21 @@ Deze locatie wordt automatisch doorgegeven aan de kaart via de
 `number`-entiteit — je hoeft niets in de kaart-configuratie zelf aan te
 passen, tenzij je bewust wilt overschrijven (zie `home_latitude` /
 `home_longitude` hieronder).
+
+## Stormstand
+
+Open de opties van de integratie (**Instellingen → Apparaten & diensten →
+PstRotator → ⋮ → Opties**) en kies **Storm** uit het menu:
+
+- **Stormstand azimuth** — waar de antenne naartoe moet draaien.
+- **Windsnelheid-sensor** — kies een `sensor`-entiteit die windsnelheid
+  rapporteert (bv. van een lokale weerstation-integratie).
+- **Winddrempel** — zodra de sensorwaarde hierboven komt, draait de
+  antenne automatisch naar de stormstand (in welke eenheid die sensor ook
+  rapporteert).
+
+Laat het windsensor-veld leeg om dit uit te zetten. De **Storm**-knop op
+de kaart werkt sowieso altijd om er handmatig naartoe te draaien.
 
 ## De kaart toevoegen aan je dashboard
 
