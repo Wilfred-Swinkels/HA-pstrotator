@@ -1,0 +1,34 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "PstRotator toevoegen",
+        "description": "Verbind met de Hamlib rotctld-compatibele netwerkinterface van PstRotator (Instellingen → Rotor interfacing → Hamlib Net rotctl).",
+        "data": {
+          "name": "Naam",
+          "host": "Hostnaam of IP-adres",
+          "port": "Poort",
+          "protocol": "Protocol"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Deze PstRotator-instantie is al geconfigureerd."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PstRotator-opties",
+        "data": {
+          "host": "Hostnaam of IP-adres",
+          "port": "Poort",
+          "protocol": "Protocol",
+          "elevation": "Vaste elevatie (graden, alleen voor rotctld)",
+          "custom_template": "Custom command template (gebruik {az})",
+          "custom_is_udp": "Custom command via UDP (uit = TCP)"
+        }
+      }
+    }
+  }
+}
