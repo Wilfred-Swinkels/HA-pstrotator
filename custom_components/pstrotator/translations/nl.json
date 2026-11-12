@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "PstRotator toevoegen",
-        "description": "Verbind met de Hamlib rotctld-compatibele netwerkinterface van PstRotator (Instellingen → Rotor interfacing → Hamlib Net rotctl).",
+        "description": "Standaard wordt PstRotator's eigen UDP-ingang gebruikt (poort 12000) - daarvoor hoef je niets in PstRotator zelf aan te passen. Kies desgewenst Hamlib rotctld of een custom commando bij Protocol.",
         "data": {
           "name": "Naam",
           "host": "Hostnaam of IP-adres",
@@ -29,7 +29,7 @@
           "port": "Poort",
           "protocol": "Protocol",
           "elevation": "Vaste elevatie (graden, alleen voor rotctld)",
-          "custom_template": "Custom command template (gebruik {az})",
+          "custom_template": "Custom command template (plaatshouder: az)",
           "custom_is_udp": "Custom command via UDP (uit = TCP)",
           "qth_locator": "QTH-locator (bv. JO32wd) — heeft voorrang op onderstaande coördinaten",
           "home_latitude": "Thuislocatie breedtegraad (optioneel, i.p.v. QTH-locator)",

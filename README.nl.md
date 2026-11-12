@@ -40,26 +40,28 @@ klik op de kaart en de antennerotor draait direct die richting op.
 
 ## PstRotator configureren
 
-Deze integratie praat standaard met de **Hamlib `rotctld`-compatibele**
-netwerkinterface van PstRotator:
+Deze integratie stuurt standaard **PstRotator's eigen UDP-commando**
+(`<PST><AZIMUTH>123</AZIMUTH></PST>` op poort `12000`) — dat is wat
+PstRotator standaard al binnenkrijgt, dus je hoeft niets in PstRotator
+zelf aan te zetten:
 
-1. Open PstRotator → **Settings** → **Rotor interfacing** (of vergelijkbaar,
-   afhankelijk van je versie) → schakel **"Hamlib Net rotctl"** (rotctld
-   emulation) in.
-2. Noteer het **IP-adres** van de PC waarop PstRotator draait en de
-   ingestelde poort (standaard `4533`).
-3. Vul dit **host/IP-adres en poort** in tijdens het instellen van de
-   integratie in Home Assistant (en later aanpasbaar via de opties van de
-   integratie).
+1. Noteer het **IP-adres** van de PC waarop PstRotator draait.
+2. Vul dat **host/IP-adres** in tijdens het instellen van de integratie in
+   Home Assistant (de poort staat standaard op `12000`, later aanpasbaar
+   via de opties van de integratie).
 
-Gebruikt jouw PstRotator-opstelling een ander netwerkprotocol (bijvoorbeeld
-de UDP-interface voor de PstRotatorAZ-app)? Kies dan in de
-integratie-opties **"Custom text command"** en stel je eigen commando-
-template in, met `{az}` als plaatshouder voor de azimuth, bijvoorbeeld:
+Twee alternatieve protocollen zijn beschikbaar bij **Protocol** in de
+opties van de integratie, mocht je die nodig hebben:
 
-```
-AZ{az:.1f}\n
-```
+- **Hamlib rotctld-compatible** — als je PstRotator's "Hamlib Net rotctl"
+  interface hebt ingeschakeld (Settings → Rotor interfacing), meestal op
+  poort `4533`.
+- **Custom text command** — stel je eigen commando-template in, met `{az}`
+  als plaatshouder voor de azimuth, bijvoorbeeld:
+
+  ```
+  AZ{az:.1f}\n
+  ```
 
 ## Thuislocatie (midden van de kaart)
 

@@ -1,11 +1,11 @@
 """Network client that talks to PstRotator.
 
-PstRotator (YO3DMU) exposes a Hamlib ``rotctld``-compatible TCP server
-(enable it in PstRotator under Settings -> "Hamlib Net rotctl" / external
-program control). That is the default, documented way this integration
-talks to the rotator. For setups that expose a different network
-interface, a "custom text command" mode is also available so the exact
-string PstRotator expects can be configured without touching code.
+By default this sends PstRotator's own native UDP command
+(``<PST><AZIMUTH>123</AZIMUTH></PST>`` on port 12000) -- the input
+PstRotator listens for out of the box, no extra configuration needed
+inside PstRotator itself. A Hamlib ``rotctld``-compatible TCP mode is
+also available for setups that enabled that interface, plus a fully
+custom text-command mode for anything else.
 """
 from __future__ import annotations
 
@@ -20,9 +20,11 @@ from .const import (
     CONF_PORT,
     CONF_PROTOCOL,
     DEFAULT_CUSTOM_TEMPLATE,
-    DEFAULT_PORT,
+    DEFAULT_PSTROTATOR_UDP_PORT,
     PROTOCOL_CUSTOM,
+    PROTOCOL_PSTROTATOR_UDP,
     PROTOCOL_ROTCTLD,
+    ROTCTLD_PORT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,15 +55,39 @@ class PstRotatorClient:
 
     async def async_set_azimuth(self, azimuth: float) -> None:
         """Send a new target azimuth to PstRotator."""
-        protocol = self._conf(CONF_PROTOCOL, PROTOCOL_ROTCTLD)
+        protocol = self._conf(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP)
         if protocol == PROTOCOL_CUSTOM:
             await self._async_send_custom(azimuth)
-        else:
+        elif protocol == PROTOCOL_ROTCTLD:
             await self._async_send_rotctld(azimuth)
+        else:
+            await self._async_send_pstrotator_udp(azimuth)
+
+    async def _async_send_pstrotator_udp(self, azimuth: float) -> None:
+        host = self._conf(CONF_HOST)
+        port = int(self._conf(CONF_PORT, DEFAULT_PSTROTATOR_UDP_PORT))
+        deg = int(round(azimuth)) % 360
+        message = f"<PST><AZIMUTH>{deg:03d}</AZIMUTH></PST>".encode("ascii")
+        await self._async_send_udp(host, port, message)
+
+    async def _async_send_udp(self, host: str, port: int, message: bytes) -> None:
+        loop = asyncio.get_running_loop()
+        try:
+            transport, _ = await loop.create_datagram_endpoint(
+                asyncio.DatagramProtocol, remote_addr=(host, port)
+            )
+        except OSError as err:
+            raise PstRotatorConnectionError(
+                f"Kan geen UDP-pakket sturen naar {host}:{port}: {err}"
+            ) from err
+        try:
+            transport.sendto(message)
+        finally:
+            transport.close()
 
     async def _async_send_rotctld(self, azimuth: float) -> None:
         host = self._conf(CONF_HOST)
-        port = int(self._conf(CONF_PORT, DEFAULT_PORT))
+        port = int(self._conf(CONF_PORT, ROTCTLD_PORT))
         elevation = float(self._conf(CONF_ELEVATION, 0))
         command = f"P {azimuth:.1f} {elevation:.1f}\n"
 
@@ -93,7 +119,7 @@ class PstRotatorClient:
             return None
 
         host = self._conf(CONF_HOST)
-        port = int(self._conf(CONF_PORT, DEFAULT_PORT))
+        port = int(self._conf(CONF_PORT, ROTCTLD_PORT))
 
         async with self._lock:
             try:
@@ -115,7 +141,7 @@ class PstRotatorClient:
 
     async def _async_send_custom(self, azimuth: float) -> None:
         host = self._conf(CONF_HOST)
-        port = int(self._conf(CONF_PORT, DEFAULT_PORT))
+        port = int(self._conf(CONF_PORT, DEFAULT_PSTROTATOR_UDP_PORT))
         template = self._conf(CONF_CUSTOM_TEMPLATE, DEFAULT_CUSTOM_TEMPLATE)
         is_udp = self._conf(CONF_CUSTOM_IS_UDP, True)
 
@@ -127,19 +153,7 @@ class PstRotatorClient:
             ) from err
 
         if is_udp:
-            loop = asyncio.get_running_loop()
-            try:
-                transport, _ = await loop.create_datagram_endpoint(
-                    asyncio.DatagramProtocol, remote_addr=(host, port)
-                )
-            except OSError as err:
-                raise PstRotatorConnectionError(
-                    f"Kan geen UDP-pakket sturen naar {host}:{port}: {err}"
-                ) from err
-            try:
-                transport.sendto(message)
-            finally:
-                transport.close()
+            await self._async_send_udp(host, port, message)
         else:
             async with self._lock:
                 try:

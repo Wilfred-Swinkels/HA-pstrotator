@@ -39,25 +39,28 @@ anywhere on the map and the antenna rotator turns straight to that bearing.
 
 ## Configuring PstRotator
 
-By default this integration talks to PstRotator's **Hamlib
-`rotctld`-compatible** network interface:
+By default this integration sends **PstRotator's own native UDP command**
+(`<PST><AZIMUTH>123</AZIMUTH></PST>` on port `12000`) — the input
+PstRotator listens for out of the box, so there's nothing to enable inside
+PstRotator itself:
 
-1. In PstRotator, open **Settings** → **Rotor interfacing** (naming may
-   vary by version) → enable **"Hamlib Net rotctl"** (rotctld emulation).
-2. Note the **IP address** of the PC running PstRotator and the configured
-   port (default `4533`).
-3. Enter this **host/IP address and port** when setting up the integration
-   in Home Assistant (and adjustable later through the integration's
-   options).
+1. Note the **IP address** of the PC running PstRotator.
+2. Enter that **host/IP address** when setting up the integration in Home
+   Assistant (the port defaults to `12000`, adjustable later through the
+   integration's options).
 
-Does your PstRotator setup use a different network protocol (e.g. the UDP
-interface used by the PstRotatorAZ app)? Choose **"Custom text command"**
-in the integration options and set your own command template, using `{az}`
-as a placeholder for the azimuth, for example:
+Two alternative protocols are available under **Protocol** in the
+integration's options, if you need them:
 
-```
-AZ{az:.1f}\n
-```
+- **Hamlib rotctld-compatible** — if you enabled PstRotator's "Hamlib Net
+  rotctl" interface (Settings → Rotor interfacing), typically on port
+  `4533`.
+- **Custom text command** — set your own command template, using `{az}` as
+  a placeholder for the azimuth, for example:
+
+  ```
+  AZ{az:.1f}\n
+  ```
 
 ## Home location (map center)
 

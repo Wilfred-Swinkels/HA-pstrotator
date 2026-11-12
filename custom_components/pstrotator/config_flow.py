@@ -20,15 +20,17 @@ from .const import (
     CONF_QTH_LOCATOR,
     DEFAULT_CUSTOM_TEMPLATE,
     DEFAULT_NAME,
-    DEFAULT_PORT,
+    DEFAULT_PSTROTATOR_UDP_PORT,
     DOMAIN,
     PROTOCOL_CUSTOM,
+    PROTOCOL_PSTROTATOR_UDP,
     PROTOCOL_ROTCTLD,
 )
 from .maidenhead import InvalidLocatorError, locator_to_latlon
 
 PROTOCOL_OPTIONS = {
-    PROTOCOL_ROTCTLD: "Hamlib rotctld-compatible (standaard)",
+    PROTOCOL_PSTROTATOR_UDP: "PstRotator native UDP (standaard, poort 12000)",
+    PROTOCOL_ROTCTLD: "Hamlib rotctld-compatible",
     PROTOCOL_CUSTOM: "Custom text command (UDP/TCP)",
 }
 
@@ -70,9 +72,11 @@ class PstRotatorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             {
                 vol.Optional("name", default=DEFAULT_NAME): str,
                 vol.Required(CONF_HOST): str,
-                vol.Required(CONF_PORT, default=DEFAULT_PORT): vol.Coerce(int),
                 vol.Required(
-                    CONF_PROTOCOL, default=PROTOCOL_ROTCTLD
+                    CONF_PORT, default=DEFAULT_PSTROTATOR_UDP_PORT
+                ): vol.Coerce(int),
+                vol.Required(
+                    CONF_PROTOCOL, default=PROTOCOL_PSTROTATOR_UDP
                 ): vol.In(PROTOCOL_OPTIONS),
                 vol.Optional(CONF_QTH_LOCATOR, default=""): str,
             }
@@ -108,10 +112,12 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(CONF_HOST, default=current.get(CONF_HOST, "")): str,
                 vol.Required(
-                    CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)
+                    CONF_PORT,
+                    default=current.get(CONF_PORT, DEFAULT_PSTROTATOR_UDP_PORT),
                 ): vol.Coerce(int),
                 vol.Required(
-                    CONF_PROTOCOL, default=current.get(CONF_PROTOCOL, PROTOCOL_ROTCTLD)
+                    CONF_PROTOCOL,
+                    default=current.get(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP),
                 ): vol.In(PROTOCOL_OPTIONS),
                 vol.Optional(
                     CONF_ELEVATION, default=current.get(CONF_ELEVATION, 0)

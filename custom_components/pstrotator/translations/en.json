@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Add PstRotator",
-        "description": "Connect to PstRotator's Hamlib rotctld-compatible network interface (Settings → Rotor interfacing → Hamlib Net rotctl).",
+        "description": "By default this uses PstRotator's own UDP input (port 12000) - no changes needed inside PstRotator itself. Pick Hamlib rotctld or a custom command under Protocol if you'd rather use those.",
         "data": {
           "name": "Name",
           "host": "Host or IP address",
@@ -29,7 +29,7 @@
           "port": "Port",
           "protocol": "Protocol",
           "elevation": "Fixed elevation (degrees, rotctld only)",
-          "custom_template": "Custom command template (use {az})",
+          "custom_template": "Custom command template (placeholder: az)",
           "custom_is_udp": "Send custom command over UDP (off = TCP)",
           "qth_locator": "QTH locator (e.g. JO32wd) — takes priority over the coordinates below",
           "home_latitude": "Home latitude (optional, instead of a QTH locator)",
