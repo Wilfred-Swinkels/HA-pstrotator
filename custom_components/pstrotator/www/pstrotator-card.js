@@ -259,20 +259,6 @@
       clip.appendChild(svgEl("circle", { cx, cy, r: R }));
       defs.appendChild(clip);
 
-      const arrow = svgEl("marker", {
-        id: "arrowHead",
-        viewBox: "0 0 10 10",
-        refX: "8",
-        refY: "5",
-        markerWidth: "7",
-        markerHeight: "7",
-        orient: "auto-start-reverse",
-      });
-      arrow.appendChild(
-        svgEl("path", { d: "M0,0 L10,5 L0,10 Z", fill: cfg.line_color })
-      );
-      defs.appendChild(arrow);
-
       svg.appendChild(defs);
 
       // Ocean background
@@ -419,23 +405,22 @@
       );
       svg.appendChild(homeGroup);
 
-      // Needle (azimuth indicator), created once and updated afterwards.
+      // Needle (azimuth indicator): a thin line along the circle's radius.
       this._needleLine = svgEl("line", {
         x1: cx,
         y1: cy,
         x2: cx,
         y2: cy - R,
         stroke: cfg.line_color,
-        "stroke-width": 3,
+        "stroke-width": 1.5,
         "stroke-linecap": "round",
-        "marker-end": "url(#arrowHead)",
         filter: "url(#needleGlow)",
       });
       svg.appendChild(this._needleLine);
       this._needleDot = svgEl("circle", {
         cx,
         cy: cy - R,
-        r: 4,
+        r: 3,
         fill: cfg.line_color,
       });
       svg.appendChild(this._needleDot);
