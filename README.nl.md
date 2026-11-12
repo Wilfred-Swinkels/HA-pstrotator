@@ -1,5 +1,7 @@
 *[Read this in English](README.md)*
 
+<p align="center"><img src="assets/logo.png" width="140" alt="PstRotator logo"></p>
+
 # PstRotator voor Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
@@ -128,6 +130,15 @@ data:
 De werelddata (continenten) komt van [Natural Earth](https://www.naturalearthdata.com/)
 (110m resolutie, publiek domein) en wordt lokaal meegeleverd — er wordt geen
 externe data opgehaald tijdens gebruik.
+
+## Branding
+
+De map `brands/custom_integrations/pstrotator/` bevat icon/logo-afbeeldingen
+in de afmetingen die [home-assistant/brands](https://github.com/home-assistant/brands)
+verwacht (`icon.png` 256×256, `icon@2x.png` 512×512, idem voor `logo`). Die
+daar via een PR indienen zorgt ervoor dat de integratie een eigen icoon
+toont in het "Integratie toevoegen"-scherm in plaats van een generieke
+placeholder.
 
 ## Licentie
 

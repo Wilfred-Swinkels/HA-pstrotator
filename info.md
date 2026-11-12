@@ -1,5 +1,7 @@
 ## PstRotator
 
+<p align="center"><img src="assets/logo.png" width="120" alt="PstRotator logo"></p>
+
 Besturing van PstRotator (YO3DMU) vanuit Home Assistant via een kleurrijke,
 klikbare azimutale wereldkaart. Klik een richting aan en de antennerotor
 draait direct die kant op. Met `+5°` / `−5°` knoppen voor fijnafstelling.
