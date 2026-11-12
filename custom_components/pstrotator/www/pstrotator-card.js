@@ -85,7 +85,6 @@
         line_color: "#ff5a36",
         ...config,
       };
-      this._lastClicked = null;
       this._built = false;
       this._render();
     }
@@ -439,13 +438,11 @@
 
       let az = Math.atan2(dx, -dy) / DEG;
       az = wrap360(az);
-      this._lastClicked = { x, y };
       this._setAzimuth(az);
     }
 
     _nudge(delta) {
       const az = wrap360(this._currentAzimuth() + delta);
-      this._lastClicked = null;
       this._setAzimuth(az);
     }
 
@@ -467,18 +464,10 @@
       const cy = this._cy;
       const R = this._R;
 
-      let tip = null;
-      if (this._lastClicked) {
-        const clickAz = wrap360(
-          Math.atan2(this._lastClicked.x - cx, -(this._lastClicked.y - cy)) / DEG
-        );
-        if (Math.abs(clickAz - az) < 0.2) tip = this._lastClicked;
-      }
-      if (!tip) {
-        this._lastClicked = null;
-        const rad = az * DEG;
-        tip = { x: cx + R * Math.sin(rad), y: cy - R * Math.cos(rad) };
-      }
+      // The needle is always a full radius of the circle; only its
+      // direction changes, never its length.
+      const rad = az * DEG;
+      const tip = { x: cx + R * Math.sin(rad), y: cy - R * Math.cos(rad) };
 
       this._needleLine.setAttribute("x2", tip.x);
       this._needleLine.setAttribute("y2", tip.y);
