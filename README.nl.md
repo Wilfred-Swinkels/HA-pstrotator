@@ -31,8 +31,10 @@ klik op de kaart en de antennerotor draait direct die richting op.
     uitzoomniveau).
   - De richtingslijn is altijd exact de straal van de cirkel (vaste lengte,
     geen pijl) — alleen de hoek verandert.
-  - Gekleurde continenten/oceaan, afstandscirkels en een kompasroos met
-    N/E/S/W.
+  - Elk land in zijn eigen kleur (een vast, deterministisch palet — blijft
+    gelijk bij herladen), plus afstandscirkels en een kompasroos met
+    N/E/S/W. Stel `land_color` in om alle landen juist één vaste kleur te
+    geven.
   - Thuislocatie instelbaar via **QTH-locator** (bv. `JO32wd`), handmatige
     coördinaten, of automatisch de HA-thuislocatie.
   - Teksten op de kaart volgen de taal van Home Assistant (op dit moment
@@ -128,10 +130,11 @@ Optionele configuratie-opties:
 | Optie | Omschrijving | Standaard |
 |---|---|---|
 | `entity` | **(verplicht)** De `number`-entiteit van PstRotator | — |
-| `title` | Titel boven de kaart | `PstRotator` |
+| `title` | Titel boven de kaart | *(geen)* |
 | `step` | Stapgrootte van de +/− knoppen | `5` |
 | `home_latitude` / `home_longitude` | Overschrijf de locatie uit de integratie/HA | zie "Thuislocatie" hierboven |
-| `land_color`, `ocean_from`, `ocean_to`, `line_color` | Kleuren aanpassen | zie `pstrotator-card.js` |
+| `land_color` | Forceer één vaste kleur voor alle landen i.p.v. het per-land-palet | *(per-land palet)* |
+| `land_stroke`, `ocean_from`, `ocean_to`, `line_color` | Overige kleuren aanpassen | zie `pstrotator-card.js` |
 
 Als de kaart niet automatisch verschijnt in de resource-lijst, voeg hem
 handmatig toe via **Instellingen → Dashboards → Resources**:

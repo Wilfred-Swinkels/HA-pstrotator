@@ -41,6 +41,14 @@
     return `${Math.round(km)} km`;
   }
 
+  // Deterministic, evenly-spread color per country: the golden-angle hue
+  // step keeps neighboring indices visually distinct without any lookup
+  // table, and stays stable across re-renders/zoom changes.
+  function countryColor(index) {
+    const hue = (index * 137.508) % 360;
+    return `hsl(${hue.toFixed(1)}, 58%, 46%)`;
+  }
+
   let landDataPromise = null;
   function loadLandData() {
     if (!landDataPromise) {
@@ -110,8 +118,8 @@
       this._config = {
         step: 5,
         title: "",
-        land_color: "#3f7a44",
-        land_stroke: "#274d2b",
+        land_color: null,
+        land_stroke: null,
         ocean_from: "#2f7fb8",
         ocean_to: "#0b2b45",
         line_color: "#ff5a36",
@@ -480,12 +488,15 @@
         svg.appendChild(label);
       }
 
-      // Land masses
-      let d = "";
-      for (const feature of land.features || []) {
+      // Land masses: one path per country, each its own color from the
+      // palette (unless cfg.land_color forces everything to one flat color).
+      const landGroup = svgEl("g", { "clip-path": "url(#oceanClip)" });
+      const features = land.features || [];
+      features.forEach((feature, countryIndex) => {
         const geom = feature.geometry;
-        if (!geom) continue;
+        if (!geom) return;
         const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+        let d = "";
         for (const poly of polys) {
           for (const ring of poly) {
             let prev = null;
@@ -508,17 +519,19 @@
             d += "Z";
           }
         }
-      }
-      const landPath = svgEl("path", {
-        d,
-        fill: cfg.land_color,
-        stroke: cfg.land_stroke,
-        "stroke-width": 0.6,
-        "stroke-linejoin": "round",
-        "clip-path": "url(#oceanClip)",
-        "fill-rule": "evenodd",
+        if (!d) return;
+        landGroup.appendChild(
+          svgEl("path", {
+            d,
+            fill: cfg.land_color || countryColor(countryIndex),
+            stroke: cfg.land_stroke || "rgba(0, 0, 0, 0.35)",
+            "stroke-width": 0.6,
+            "stroke-linejoin": "round",
+            "fill-rule": "evenodd",
+          })
+        );
       });
-      svg.appendChild(landPath);
+      svg.appendChild(landGroup);
 
       // Degree ticks + cardinal labels (zoom-independent: always the full ring)
       const tickGroup = svgEl("g");

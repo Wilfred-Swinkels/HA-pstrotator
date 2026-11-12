@@ -29,8 +29,10 @@ anywhere on the map and the antenna rotator turns straight to that bearing.
     zoom-out level).
   - The direction line is always exactly the radius of the circle (fixed
     length, no arrowhead) — only the angle changes.
-  - Colored continents/ocean, distance rings, and a compass rose with
-    N/E/S/W.
+  - Every country rendered in its own color (a deterministic palette, so
+    colors stay stable across reloads), plus distance rings and a compass
+    rose with N/E/S/W. Set `land_color` to force every country to the same
+    flat color instead.
   - Home location configurable via a **QTH locator** (e.g. `JO32wd`),
     manual coordinates, or automatically from Home Assistant's own home
     location.
@@ -127,10 +129,11 @@ Optional configuration options:
 | Option | Description | Default |
 |---|---|---|
 | `entity` | **(required)** PstRotator's `number` entity | — |
-| `title` | Title shown above the card | `PstRotator` |
+| `title` | Title shown above the card | *(none)* |
 | `step` | Step size of the +/− buttons | `5` |
 | `home_latitude` / `home_longitude` | Override the location from the integration/HA | see "Home location" above |
-| `land_color`, `ocean_from`, `ocean_to`, `line_color` | Customize colors | see `pstrotator-card.js` |
+| `land_color` | Force every country to this one flat color instead of the per-country palette | *(per-country palette)* |
+| `land_stroke`, `ocean_from`, `ocean_to`, `line_color` | Customize other colors | see `pstrotator-card.js` |
 
 If the card doesn't appear automatically in the resource list, add it
 manually via **Settings → Dashboards → Resources**:
