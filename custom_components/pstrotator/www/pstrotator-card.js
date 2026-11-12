@@ -109,7 +109,7 @@
       }
       this._config = {
         step: 5,
-        title: "PstRotator",
+        title: "",
         land_color: "#3f7a44",
         land_stroke: "#274d2b",
         ocean_from: "#2f7fb8",
@@ -226,19 +226,22 @@
             display: none;
             flex: none;
             border: none;
-            border-radius: 14px;
-            padding: 3px 10px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            font-weight: 600;
             color: #fff;
             background: #c23b22;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
             cursor: pointer;
+            transition: transform 0.08s ease-in-out;
           }
           .storm-btn:hover {
             filter: brightness(1.1);
+            transform: scale(1.06);
+          }
+          .storm-btn:active {
+            transform: scale(0.96);
           }
           .az-readout {
             flex: none;

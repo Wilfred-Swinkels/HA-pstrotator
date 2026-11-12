@@ -6,6 +6,8 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
+Gemaakt door [ON4NDO](https://www.qrz.com/db/ON4NDO).
+
 Besturing van [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU)
 vanuit Home Assistant, met een kleurrijke, interactieve azimutale wereldkaart:
 klik op de kaart en de antennerotor draait direct die richting op.
@@ -115,9 +117,11 @@ Voeg daarna een kaart toe met:
 ```yaml
 type: custom:pstrotator-card
 entity: number.pstrotator_azimuth
-title: Antenne richting
 step: 5
 ```
+
+(`title` is optioneel — laat 'm weg, zoals hierboven, zodat de header vrij
+blijft voor alleen de Storm-knop en de azimuth-uitlezing.)
 
 Optionele configuratie-opties:
 

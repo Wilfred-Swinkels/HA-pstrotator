@@ -6,6 +6,8 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
+Made by [ON4NDO](https://www.qrz.com/db/ON4NDO).
+
 Control [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU)
 from Home Assistant with a colorful, interactive azimuthal world map: click
 anywhere on the map and the antenna rotator turns straight to that bearing.
@@ -114,9 +116,11 @@ resource. Then add a card with:
 ```yaml
 type: custom:pstrotator-card
 entity: number.pstrotator_azimuth
-title: Antenna heading
 step: 5
 ```
+
+(`title` is optional — leave it out, as above, to keep the header free for
+just the Storm button and the azimuth readout.)
 
 Optional configuration options:
 
