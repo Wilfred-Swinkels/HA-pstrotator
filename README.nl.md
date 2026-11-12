@@ -156,12 +156,11 @@ externe data opgehaald tijdens gebruik.
 
 ## Branding
 
-De map `brands/custom_integrations/pstrotator/` bevat icon/logo-afbeeldingen
-in de afmetingen die [home-assistant/brands](https://github.com/home-assistant/brands)
-verwacht (`icon.png` 256×256, `icon@2x.png` 512×512, idem voor `logo`). Die
-daar via een PR indienen zorgt ervoor dat de integratie een eigen icoon
-toont in het "Integratie toevoegen"-scherm in plaats van een generieke
-placeholder.
+De integratie levert zijn eigen icoon/logo mee in `custom_components/pstrotator/brand/`
+(`icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`). Sinds Home Assistant
+2026.3 worden zulke lokale brand-afbeeldingen automatisch herkend en hebben
+ze voorrang op de [home-assistant/brands](https://github.com/home-assistant/brands)
+CDN — geen aparte indiening nodig.
 
 ## Licentie
 

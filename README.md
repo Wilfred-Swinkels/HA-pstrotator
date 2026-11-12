@@ -155,11 +155,11 @@ is fetched at runtime.
 
 ## Branding
 
-The `brands/custom_integrations/pstrotator/` folder contains icon/logo
-assets sized to [home-assistant/brands](https://github.com/home-assistant/brands)
-spec (`icon.png` 256×256, `icon@2x.png` 512×512, same for `logo`). Submitting
-these there (via PR) is what makes the integration show its own icon in the
-"Add integration" dialog instead of a generic placeholder.
+The integration ships its own icon/logo in `custom_components/pstrotator/brand/`
+(`icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`). Since Home Assistant
+2026.3, local brand images like these are picked up automatically and take
+priority over the [home-assistant/brands](https://github.com/home-assistant/brands)
+CDN — no separate submission needed.
 
 ## License
 
