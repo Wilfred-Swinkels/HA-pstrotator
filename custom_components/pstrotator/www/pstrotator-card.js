@@ -86,6 +86,9 @@
         ...config,
       };
       this._built = false;
+      this._dragging = false;
+      this._dragAzimuth = null;
+      this._lastSendTime = 0;
       this._render();
     }
 
@@ -159,8 +162,12 @@
             display: block;
             width: 100%;
             height: auto;
-            cursor: crosshair;
+            cursor: grab;
             user-select: none;
+            touch-action: none;
+          }
+          svg.dragging {
+            cursor: grabbing;
           }
           .nudge {
             position: absolute;
@@ -216,7 +223,10 @@
       this.shadowRoot
         .getElementById("plus")
         .addEventListener("click", () => this._nudge(cfg.step));
-      this._svg.addEventListener("click", (ev) => this._onMapClick(ev));
+      this._svg.addEventListener("pointerdown", (ev) => this._onPointerDown(ev));
+      this._svg.addEventListener("pointermove", (ev) => this._onPointerMove(ev));
+      this._svg.addEventListener("pointerup", (ev) => this._onPointerUp(ev));
+      this._svg.addEventListener("pointercancel", (ev) => this._onPointerUp(ev));
 
       await this._drawBase();
       this._updateDynamic();
@@ -425,7 +435,7 @@
       svg.appendChild(this._needleDot);
     }
 
-    _onMapClick(ev) {
+    _azimuthFromEvent(ev) {
       const rect = this._svg.getBoundingClientRect();
       const viewBox = this._svg.viewBox.baseVal;
       const scaleX = viewBox.width / rect.width;
@@ -434,32 +444,59 @@
       const y = (ev.clientY - rect.top) * scaleY;
       const dx = x - this._cx;
       const dy = y - this._cy;
-      if (Math.hypot(dx, dy) > this._R + 20) return;
+      return { az: wrap360(Math.atan2(dx, -dy) / DEG), dist: Math.hypot(dx, dy) };
+    }
 
-      let az = Math.atan2(dx, -dy) / DEG;
-      az = wrap360(az);
+    _onPointerDown(ev) {
+      const { az, dist } = this._azimuthFromEvent(ev);
+      if (dist > this._R + 20) return;
+
+      this._svg.setPointerCapture(ev.pointerId);
+      this._svg.classList.add("dragging");
+      this._dragging = true;
+      this._dragAzimuth = az;
+      this._renderNeedle(az);
       this._setAzimuth(az);
+    }
+
+    _onPointerMove(ev) {
+      if (!this._dragging) return;
+      const { az } = this._azimuthFromEvent(ev);
+      this._dragAzimuth = az;
+      this._renderNeedle(az);
+      const readout = this.shadowRoot.getElementById("az-readout");
+      if (readout) readout.textContent = `${az.toFixed(1)}°`;
+      this._setAzimuth(az);
+    }
+
+    _onPointerUp(ev) {
+      if (!this._dragging) return;
+      this._dragging = false;
+      this._svg.classList.remove("dragging");
+      if (this._svg.hasPointerCapture(ev.pointerId)) {
+        this._svg.releasePointerCapture(ev.pointerId);
+      }
+      if (this._dragAzimuth != null) this._setAzimuth(this._dragAzimuth, true);
     }
 
     _nudge(delta) {
       const az = wrap360(this._currentAzimuth() + delta);
-      this._setAzimuth(az);
+      this._setAzimuth(az, true);
     }
 
-    _setAzimuth(az) {
+    _setAzimuth(az, force) {
       if (!this._hass) return;
+      const now = Date.now();
+      if (!force && now - this._lastSendTime < 150) return;
+      this._lastSendTime = now;
       this._hass.callService("number", "set_value", {
         entity_id: this._config.entity,
         value: Math.round(az * 10) / 10,
       });
     }
 
-    _updateDynamic() {
-      if (!this._svg || !this._needleLine) return;
-      const az = this._currentAzimuth();
-      const readout = this.shadowRoot.getElementById("az-readout");
-      if (readout) readout.textContent = `${az.toFixed(1)}°`;
-
+    _renderNeedle(az) {
+      if (!this._needleLine) return;
       const cx = this._cx;
       const cy = this._cy;
       const R = this._R;
@@ -473,6 +510,16 @@
       this._needleLine.setAttribute("y2", tip.y);
       this._needleDot.setAttribute("cx", tip.x);
       this._needleDot.setAttribute("cy", tip.y);
+    }
+
+    _updateDynamic() {
+      if (!this._svg || !this._needleLine) return;
+      const az = this._dragging && this._dragAzimuth != null
+        ? this._dragAzimuth
+        : this._currentAzimuth();
+      const readout = this.shadowRoot.getElementById("az-readout");
+      if (readout) readout.textContent = `${az.toFixed(1)}°`;
+      this._renderNeedle(az);
     }
   }
 
