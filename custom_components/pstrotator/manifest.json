@@ -1,12 +1,12 @@
 {
   "domain": "pstrotator",
   "name": "PstRotator",
-  "codeowners": ["@wswinkels1"],
+  "codeowners": ["@Wilfred-Swinkels"],
   "config_flow": true,
-  "documentation": "https://github.com/wswinkels1/ha-pstrotator",
+  "documentation": "https://github.com/Wilfred-Swinkels/HA-pstrotator",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/wswinkels1/ha-pstrotator/issues",
+  "issue_tracker": "https://github.com/Wilfred-Swinkels/HA-pstrotator/issues",
   "requirements": [],
   "version": "1.0.0"
 }
