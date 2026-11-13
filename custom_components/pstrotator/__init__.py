@@ -48,11 +48,16 @@ async def _async_register_lovelace_resource(hass: HomeAssistant) -> bool:
         if resources is None:
             return False
 
+        # Always (re)load from storage first. async_items() happily returns
+        # an empty list -- rather than raising -- when the collection hasn't
+        # read its storage file yet, which previously made every version
+        # bump think no resource existed yet and create a brand new one
+        # instead of finding and updating the existing entry.
         try:
-            items = resources.async_items()
-        except Exception:  # noqa: BLE001 - not loaded yet
             await resources.async_load()
-            items = resources.async_items()
+        except Exception:  # noqa: BLE001 - already loaded, or load not needed
+            pass
+        items = resources.async_items()
 
         new_url = f"{url}?v={INTEGRATION_VERSION}"
         matches = [
