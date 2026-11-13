@@ -592,15 +592,15 @@
       );
       svg.appendChild(homeGroup);
 
-      // Beam triangle: the antenna's -3dB beamwidth, apex at home, centered
-      // on the real (or, until known, target) azimuth. Fades in/out via a
-      // CSS transition based on whether we're actively tracking position.
+      // Beam "pie slice": the antenna's -3dB beamwidth, apex at home, arced
+      // base following the circle's edge, centered on the real (or, until
+      // known, target) azimuth. Fades out over 5s once tracking stops.
       this._beamTriangle = svgEl("path", {
         d: "",
         fill: cfg.line_color,
         "fill-opacity": "0",
         stroke: "none",
-        style: "transition: fill-opacity 1.5s ease;",
+        style: "transition: fill-opacity 5s ease;",
       });
       svg.appendChild(this._beamTriangle);
 
@@ -719,18 +719,22 @@
       const cx = this._cx;
       const cy = this._cy;
       const R = this._R;
-      const half = beamwidth / 2;
+      const half = Math.min(beamwidth, 359.9) / 2;
       const a1 = (direction - half) * DEG;
       const a2 = (direction + half) * DEG;
       const x1 = cx + R * Math.sin(a1);
       const y1 = cy - R * Math.cos(a1);
       const x2 = cx + R * Math.sin(a2);
       const y2 = cy - R * Math.cos(a2);
+      // A true pie slice: apex at home, the two straight sides to the edge,
+      // and an arc along the circle for the base -- not a flat-topped
+      // triangle.
+      const largeArc = beamwidth > 180 ? 1 : 0;
       this._beamTriangle.setAttribute(
         "d",
-        `M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} L${x2.toFixed(1)},${y2.toFixed(1)} Z`
+        `M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${largeArc} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`
       );
-      this._beamTriangle.setAttribute("fill-opacity", attrs.tracking ? "0.28" : "0");
+      this._beamTriangle.setAttribute("fill-opacity", attrs.tracking ? "0.45" : "0");
     }
 
     _updateDynamic() {
