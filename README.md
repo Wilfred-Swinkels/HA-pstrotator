@@ -27,8 +27,6 @@ anywhere on the map and the antenna rotator turns straight to that bearing.
   - `+5°` / `−5°` buttons (step size configurable) for fine adjustment, and
     zoom in/out buttons above them (the full-world view is the maximum
     zoom-out level).
-  - The direction line is always exactly the radius of the circle (fixed
-    length, no arrowhead) — only the angle changes.
   - Every country rendered in its own color (a deterministic palette, so
     colors stay stable across reloads), plus distance rings and a compass
     rose with N/E/S/W. Set `land_color` to force every country to the same

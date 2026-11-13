@@ -29,8 +29,6 @@ klik op de kaart en de antennerotor draait direct die richting op.
   - `+5°` / `−5°` knoppen (stapgrootte instelbaar) om bij te sturen, en
     zoom in/uit-knoppen erboven (de volledige wereldkaart is het maximale
     uitzoomniveau).
-  - De richtingslijn is altijd exact de straal van de cirkel (vaste lengte,
-    geen pijl) — alleen de hoek verandert.
   - Elk land in zijn eigen kleur (een vast, deterministisch palet — blijft
     gelijk bij herladen), plus afstandscirkels en een kompasroos met
     N/E/S/W. Stel `land_color` in om alle landen juist één vaste kleur te
