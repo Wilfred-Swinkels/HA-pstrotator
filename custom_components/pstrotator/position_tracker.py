@@ -21,7 +21,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PositionListener = Callable[[float | None, bool], None]
+PositionListener = Callable[[float | None, bool, bool], None]
 
 
 def _angle_diff(a: float, b: float) -> float:
@@ -39,6 +39,7 @@ class PositionTracker:
         self._last_azimuth: float | None = None
         self._last_change = time.monotonic()
         self._active = True  # poll actively right after startup too
+        self._external_change = False
         self._wake = asyncio.Event()
 
     def add_listener(self, listener: PositionListener) -> None:
@@ -51,6 +52,7 @@ class PositionTracker:
     def notify_command_sent(self) -> None:
         """Call after sending a new azimuth to re-arm active polling."""
         self._active = True
+        self._external_change = False
         self._last_change = time.monotonic()
         self._wake.set()
 
@@ -66,7 +68,7 @@ class PositionTracker:
     def _notify(self, azimuth: float | None, active: bool) -> None:
         for listener in list(self._listeners):
             try:
-                listener(azimuth, active)
+                listener(azimuth, active, self._external_change)
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("Error notifying position listener")
 
@@ -106,6 +108,12 @@ class PositionTracker:
                             self._last_azimuth = azimuth
                             self._last_change = time.monotonic()
                             self._active = True
+                            # Nobody told us to expect this -- the antenna
+                            # was moved some other way (PstRotator itself,
+                            # a physical control box). Mark it so listeners
+                            # can treat the new reading as the new target,
+                            # not just a real-position-catching-up update.
+                            self._external_change = True
                             self._notify(azimuth, True)
             except asyncio.CancelledError:
                 raise

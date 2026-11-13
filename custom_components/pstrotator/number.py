@@ -118,9 +118,17 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             lambda: self._tracker.remove_listener(self._on_position_update)
         )
 
-    def _on_position_update(self, azimuth: float | None, tracking: bool) -> None:
+    def _on_position_update(
+        self, azimuth: float | None, tracking: bool, external: bool
+    ) -> None:
         self._real_azimuth = azimuth
         self._tracking = tracking
+        if external and azimuth is not None:
+            # The antenna moved without us commanding it (PstRotator itself,
+            # a physical control box, ...) -- treat the new reading as the
+            # new target so the card's needle follows reality instead of
+            # staying pinned to a now-stale HA-side command.
+            self._attr_native_value = azimuth
         self.async_write_ha_state()
 
     async def _async_wind_speed_changed(self, event: Event) -> None:
