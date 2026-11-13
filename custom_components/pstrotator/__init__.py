@@ -54,12 +54,19 @@ async def _async_register_lovelace_resource(hass: HomeAssistant) -> bool:
             await resources.async_load()
             items = resources.async_items()
 
-        already_present = any(
-            str(item.get("url", "")).split("?")[0] == url for item in items
+        new_url = f"{url}?v={INTEGRATION_VERSION}"
+        existing = next(
+            (item for item in items if str(item.get("url", "")).split("?")[0] == url),
+            None,
         )
-        if not already_present:
-            await resources.async_create_item(
-                {"res_type": "module", "url": f"{url}?v={INTEGRATION_VERSION}"}
+        if existing is None:
+            await resources.async_create_item({"res_type": "module", "url": new_url})
+        elif existing.get("url") != new_url:
+            # Bump the cached URL's version query string so browsers that
+            # already loaded the old module fetch the new file instead of
+            # serving a stale cached copy forever.
+            await resources.async_update_item(
+                existing["id"], {"res_type": "module", "url": new_url}
             )
         return True
     except Exception as err:  # noqa: BLE001
