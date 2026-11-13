@@ -26,7 +26,8 @@
         "title": "PstRotator-opties",
         "menu_options": {
           "connection": "Verbinding",
-          "storm": "Storm"
+          "storm": "Storm",
+          "antenna": "Antenne"
         }
       },
       "connection": {
@@ -50,6 +51,14 @@
           "storm_azimuth": "Stormstand azimuth (graden)",
           "wind_speed_entity": "Windsnelheid-sensor",
           "wind_speed_threshold": "Winddrempel (zelfde eenheid als de sensor)"
+        }
+      },
+      "antenna": {
+        "title": "Antenne-openingshoek",
+        "description": "Tekent een transparante driehoek op de kaart die de antennebundel laat zien. Vul de openingshoek (-3dB bundelbreedte) rechtstreeks in, of vul de antenne-gain in om de openingshoek automatisch te laten berekenen (benadering, geen exacte waarde per antenne). Gain heeft voorrang als beide zijn ingevuld.",
+        "data": {
+          "beamwidth": "Openingshoek (graden, -3dB bundelbreedte)",
+          "antenna_gain": "Antenne-gain (dBi) - berekent de openingshoek automatisch"
         }
       }
     },

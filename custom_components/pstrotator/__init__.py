@@ -7,15 +7,25 @@ Lovelace map card that lets you pick a bearing by clicking a world map.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import CARD_FILENAME, CARD_URL_BASE, DOMAIN, INTEGRATION_VERSION, PLATFORMS
+from .position_tracker import PositionTracker
 from .rotator import PstRotatorClient
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class PstRotatorRuntimeData:
+    """Per-config-entry runtime objects."""
+
+    client: PstRotatorClient
+    tracker: PositionTracker
 
 
 async def _async_register_lovelace_resource(hass: HomeAssistant) -> bool:
@@ -102,7 +112,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_frontend(hass)
 
     client = PstRotatorClient(hass, dict(entry.data), dict(entry.options))
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = client
+    tracker = PositionTracker(hass, client)
+    tracker.start()
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = PstRotatorRuntimeData(
+        client=client, tracker=tracker
+    )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
@@ -110,14 +124,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    client: PstRotatorClient = hass.data[DOMAIN][entry.entry_id]
-    client.update_options(dict(entry.options))
+    runtime: PstRotatorRuntimeData = hass.data[DOMAIN][entry.entry_id]
+    runtime.client.update_options(dict(entry.options))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a PstRotator config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        client: PstRotatorClient = hass.data[DOMAIN].pop(entry.entry_id)
-        await client.async_close()
+        runtime: PstRotatorRuntimeData = hass.data[DOMAIN].pop(entry.entry_id)
+        await runtime.tracker.async_stop()
+        await runtime.client.async_close()
     return unload_ok

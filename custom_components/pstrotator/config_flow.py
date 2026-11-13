@@ -10,6 +10,8 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_ANTENNA_GAIN,
+    CONF_BEAMWIDTH,
     CONF_CUSTOM_IS_UDP,
     CONF_CUSTOM_TEMPLATE,
     CONF_ELEVATION,
@@ -109,7 +111,7 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["connection", "storm"],
+            menu_options=["connection", "storm", "antenna"],
         )
 
     async def async_step_connection(
@@ -187,3 +189,23 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
             }
         )
         return self.async_show_form(step_id="storm", data_schema=schema)
+
+    async def async_step_antenna(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        current = self._current()
+
+        if user_input is not None:
+            return self.async_create_entry(title="", data={**current, **user_input})
+
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_BEAMWIDTH, default=current.get(CONF_BEAMWIDTH, "")
+                ): str,
+                vol.Optional(
+                    CONF_ANTENNA_GAIN, default=current.get(CONF_ANTENNA_GAIN, "")
+                ): str,
+            }
+        )
+        return self.async_show_form(step_id="antenna", data_schema=schema)

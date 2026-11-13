@@ -26,7 +26,8 @@
         "title": "PstRotator options",
         "menu_options": {
           "connection": "Connection",
-          "storm": "Storm"
+          "storm": "Storm",
+          "antenna": "Antenna"
         }
       },
       "connection": {
@@ -50,6 +51,14 @@
           "storm_azimuth": "Storm position azimuth (degrees)",
           "wind_speed_entity": "Wind speed sensor",
           "wind_speed_threshold": "Wind threshold (same unit as the sensor)"
+        }
+      },
+      "antenna": {
+        "title": "Antenna beamwidth",
+        "description": "Draws a transparent triangle on the map showing the antenna's beam. Enter the beamwidth (-3dB) directly, or enter the antenna gain to have the beamwidth calculated automatically (an approximation, not an exact figure for any specific antenna). Gain takes priority if both are set.",
+        "data": {
+          "beamwidth": "Beamwidth (degrees, -3dB)",
+          "antenna_gain": "Antenna gain (dBi) - calculates the beamwidth automatically"
         }
       }
     },

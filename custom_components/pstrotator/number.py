@@ -13,6 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
 
+from .antenna import resolve_beamwidth
 from .const import (
     CONF_STORM_AZIMUTH,
     CONF_WIND_SPEED_ENTITY,
@@ -20,6 +21,7 @@ from .const import (
     DOMAIN,
 )
 from .home_location import resolve_home_location
+from .position_tracker import PositionTracker
 from .rotator import PstRotatorClient, PstRotatorConnectionError
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,8 +33,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the PstRotator azimuth number entity."""
-    client: PstRotatorClient = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([PstRotatorAzimuthNumber(entry, client)])
+    runtime = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities(
+        [PstRotatorAzimuthNumber(entry, runtime.client, runtime.tracker)]
+    )
 
 
 class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
@@ -47,9 +51,12 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
     _attr_native_unit_of_measurement = DEGREE
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, entry: ConfigEntry, client: PstRotatorClient) -> None:
+    def __init__(
+        self, entry: ConfigEntry, client: PstRotatorClient, tracker: PositionTracker
+    ) -> None:
         self._entry = entry
         self._client = client
+        self._tracker = tracker
         self._attr_unique_id = f"{entry.entry_id}_azimuth"
         self._attr_native_value = 0.0
         self._attr_device_info = DeviceInfo(
@@ -59,6 +66,8 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             model="PstRotator",
         )
         self._storm_active = False
+        self._real_azimuth: float | None = None
+        self._tracking = False
 
     def _storm_azimuth(self) -> float | None:
         raw = self._client.get_option(CONF_STORM_AZIMUTH)
@@ -69,7 +78,7 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        """Expose the resolved home location + storm azimuth for the map card."""
+        """Expose home location, storm azimuth, beamwidth and live position."""
         lat, lon, locator = resolve_home_location(
             self.hass, self._entry.data, self._entry.options
         )
@@ -79,6 +88,12 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         storm_azimuth = self._storm_azimuth()
         if storm_azimuth is not None:
             attrs["storm_azimuth"] = storm_azimuth
+        beamwidth = resolve_beamwidth(self._entry.data, self._entry.options)
+        if beamwidth is not None:
+            attrs["beamwidth"] = beamwidth
+        if self._real_azimuth is not None:
+            attrs["real_azimuth"] = self._real_azimuth
+        attrs["tracking"] = self._tracking
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -97,6 +112,16 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
                     self.hass, [wind_entity_id], self._async_wind_speed_changed
                 )
             )
+
+        self._tracker.add_listener(self._on_position_update)
+        self.async_on_remove(
+            lambda: self._tracker.remove_listener(self._on_position_update)
+        )
+
+    def _on_position_update(self, azimuth: float | None, tracking: bool) -> None:
+        self._real_azimuth = azimuth
+        self._tracking = tracking
+        self.async_write_ha_state()
 
     async def _async_wind_speed_changed(self, event: Event) -> None:
         """Move to the storm azimuth once wind speed crosses the threshold."""
@@ -140,5 +165,6 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         except PstRotatorConnectionError as err:
             raise HomeAssistantError(str(err)) from err
 
+        self._tracker.notify_command_sent()
         self._attr_native_value = value
         self.async_write_ha_state()

@@ -6,11 +6,20 @@ PstRotator listens for out of the box, no extra configuration needed
 inside PstRotator itself. A Hamlib ``rotctld``-compatible TCP mode is
 also available for setups that enabled that interface, plus a fully
 custom text-command mode for anything else.
+
+Reading the real position back uses PstRotator's own query protocol too
+(confirmed against the official PstRotator User's Manual, rev. 7.5,
+"UDP Control" section): sending ``<PST>AZ?</PST>`` makes PstRotator report
+``AZ:xxx.x<CR>`` to UDP port + 1 (a fixed port, not back to the sender's
+source port) -- so reading it means briefly listening on that port
+ourselves. rotctld's ``p`` query remains available as an alternative for
+setups using that protocol instead.
 """
 from __future__ import annotations
 
 import asyncio
 import logging
+import re
 
 from .const import (
     CONF_CUSTOM_IS_UDP,
@@ -30,6 +39,9 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 TIMEOUT = 3.0
+QUERY_TIMEOUT = 1.5
+
+_AZ_RESPONSE_RE = re.compile(r"AZ:\s*(-?[\d.]+)")
 
 
 class PstRotatorConnectionError(Exception):
@@ -118,10 +130,59 @@ class PstRotatorClient:
                 writer.close()
 
     async def async_get_azimuth(self) -> float | None:
-        """Read the current azimuth back from PstRotator (rotctld mode only)."""
-        if self._conf(CONF_PROTOCOL, PROTOCOL_ROTCTLD) != PROTOCOL_ROTCTLD:
+        """Read the real-world azimuth back from PstRotator, if possible."""
+        protocol = self._conf(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP)
+        if protocol == PROTOCOL_ROTCTLD:
+            return await self._async_get_azimuth_rotctld()
+        if protocol == PROTOCOL_PSTROTATOR_UDP:
+            return await self._async_get_azimuth_native_udp()
+        return None  # custom protocol has no defined read-back
+
+    async def _async_get_azimuth_native_udp(self) -> float | None:
+        host = self._conf(CONF_HOST)
+        port = int(self._conf(CONF_PORT, DEFAULT_PSTROTATOR_UDP_PORT))
+        listen_port = port + 1
+
+        loop = asyncio.get_running_loop()
+        response: "asyncio.Future[bytes]" = loop.create_future()
+
+        class _QueryProtocol(asyncio.DatagramProtocol):
+            def datagram_received(self, data, addr):  # noqa: ANN001
+                if not response.done():
+                    response.set_result(data)
+
+        async with self._lock:
+            try:
+                transport, _ = await loop.create_datagram_endpoint(
+                    _QueryProtocol, local_addr=("0.0.0.0", listen_port)
+                )
+            except OSError as err:
+                _LOGGER.debug(
+                    "Kan niet luisteren op UDP-poort %s voor positie-antwoord: %s",
+                    listen_port,
+                    err,
+                )
+                return None
+
+            try:
+                transport.sendto(b"<PST>AZ?</PST>", (host, port))
+                try:
+                    data = await asyncio.wait_for(response, QUERY_TIMEOUT)
+                except asyncio.TimeoutError:
+                    return None
+            finally:
+                transport.close()
+
+        text = data.decode(errors="ignore")
+        match = _AZ_RESPONSE_RE.search(text)
+        if not match:
+            return None
+        try:
+            return float(match.group(1))
+        except ValueError:
             return None
 
+    async def _async_get_azimuth_rotctld(self) -> float | None:
         host = self._conf(CONF_HOST)
         port = int(self._conf(CONF_PORT, ROTCTLD_PORT))
 

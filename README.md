@@ -40,6 +40,14 @@ anywhere on the map and the antenna rotator turns straight to that bearing.
   threshold, and the antenna automatically turns to that azimuth once wind
   speed crosses the threshold. A **Storm** button also appears on the card
   for turning to it manually at any time.
+- **Live position + beam triangle**: when using the default native UDP
+  protocol or rotctld, the integration queries PstRotator's *actual*
+  antenna position (not just the commanded target) every 0.5s while it's
+  moving, continuing for 15s after it settles before dropping back to an
+  idle poll. The card draws a transparent triangle for the antenna's
+  beamwidth — apex at the home location, centered on the real position —
+  that fades out once polling goes idle. Configure the beamwidth directly,
+  or enter the antenna's gain (dBi) to have it calculated automatically.
 
 ## Installation via HACS
 
@@ -108,6 +116,28 @@ PstRotator → ⋮ → Options**) and pick **Storm** from the menu:
 Leave the wind speed sensor empty to turn this off. Either way, the
 **Storm** button on the card always lets you turn to that azimuth by hand.
 
+## Antenna beamwidth and live position
+
+Pick **Antenna** from the same options menu to configure:
+
+- **Beamwidth** — the antenna's -3dB beamwidth in degrees, entered
+  directly, *or*
+- **Antenna gain (dBi)** — if set, the beamwidth is calculated from this
+  instead (Kraus' approximation for a symmetric beam: `θ ≈ √(41253 / G)`).
+  This is a rule-of-thumb figure, not exact for any specific antenna
+  design. Gain takes priority over a manually entered beamwidth.
+
+With either set, the card draws a semi-transparent triangle representing
+the antenna's beam, apex at the home location.
+
+This only works with the default native UDP protocol or with rotctld —
+PstRotator's manual documents `<PST>AZ?</PST>` as the position query,
+answered as `AZ:xxx.x` on UDP port + 1 (e.g. 12001 for the default port
+12000). The integration polls this every 0.5s while the antenna is
+moving, keeps polling for 15s after it settles, then drops back to an
+idle poll until the next command or a detected (e.g. manual) movement.
+The beam triangle fades out while idle and back in once tracking resumes.
+
 ## Adding the card to your dashboard
 
 After installation the card is automatically registered as a Lovelace
@@ -157,6 +187,17 @@ data:
 The world data (continents) comes from [Natural Earth](https://www.naturalearthdata.com/)
 (110m resolution, public domain) and is bundled locally — no external data
 is fetched at runtime.
+
+## Troubleshooting
+
+`tools/pstrotator_query_test.py` is a standalone script (stdlib only) that
+sends the position query PstRotator expects and prints exactly what comes
+back, useful for checking connectivity/firewalls independently of Home
+Assistant:
+
+```
+python3 tools/pstrotator_query_test.py <pstrotator-host> [port]
+```
 
 ## Branding
 

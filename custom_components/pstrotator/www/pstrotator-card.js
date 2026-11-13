@@ -592,6 +592,18 @@
       );
       svg.appendChild(homeGroup);
 
+      // Beam triangle: the antenna's -3dB beamwidth, apex at home, centered
+      // on the real (or, until known, target) azimuth. Fades in/out via a
+      // CSS transition based on whether we're actively tracking position.
+      this._beamTriangle = svgEl("path", {
+        d: "",
+        fill: cfg.line_color,
+        "fill-opacity": "0",
+        stroke: "none",
+        style: "transition: fill-opacity 1.5s ease;",
+      });
+      svg.appendChild(this._beamTriangle);
+
       // Needle (azimuth indicator): a thin line along the circle's radius.
       // Always the full radius -- zoom changes what the map shows, never
       // the needle's length.
@@ -696,6 +708,31 @@
       this._needleDot.setAttribute("cy", tip.y);
     }
 
+    _renderBeamTriangle(direction) {
+      if (!this._beamTriangle) return;
+      const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
+      const beamwidth = attrs.beamwidth;
+      if (beamwidth == null) {
+        this._beamTriangle.setAttribute("fill-opacity", "0");
+        return;
+      }
+      const cx = this._cx;
+      const cy = this._cy;
+      const R = this._R;
+      const half = beamwidth / 2;
+      const a1 = (direction - half) * DEG;
+      const a2 = (direction + half) * DEG;
+      const x1 = cx + R * Math.sin(a1);
+      const y1 = cy - R * Math.cos(a1);
+      const x2 = cx + R * Math.sin(a2);
+      const y2 = cy - R * Math.cos(a2);
+      this._beamTriangle.setAttribute(
+        "d",
+        `M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} L${x2.toFixed(1)},${y2.toFixed(1)} Z`
+      );
+      this._beamTriangle.setAttribute("fill-opacity", attrs.tracking ? "0.28" : "0");
+    }
+
     _updateDynamic() {
       if (!this._svg || !this._needleLine) return;
       this._applyStrings();
@@ -706,6 +743,10 @@
       const readout = this.shadowRoot.getElementById("az-readout");
       if (readout) readout.textContent = `Az: ${az.toFixed(1)}°`;
       this._renderNeedle(az);
+
+      const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
+      const realAz = attrs.real_azimuth != null ? Number(attrs.real_azimuth) : az;
+      this._renderBeamTriangle(realAz);
 
       const stormBtn = this.shadowRoot.getElementById("storm-btn");
       if (stormBtn) {

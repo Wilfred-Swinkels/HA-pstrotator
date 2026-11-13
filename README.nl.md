@@ -41,6 +41,15 @@ klik op de kaart en de antennerotor draait direct die richting op.
   drempelwaarde, en de antenne draait automatisch naar die stand zodra de
   windsnelheid boven de drempel komt. Er verschijnt ook een **Storm**-knop
   op de kaart om dit op elk moment handmatig te doen.
+- **Live positie + bundel-driehoek**: bij het standaard native UDP-protocol
+  of rotctld vraagt de integratie elke 0,5 sec de *werkelijke* antennestand
+  op (niet alleen de ingestelde doelwaarde) zolang de antenne beweegt, en
+  blijft dat nog 15 sec doen nadat die tot stilstand is gekomen voordat
+  'ie terugvalt op een rustige polling. De kaart tekent een transparante
+  driehoek voor de antennebundel — tophoek op de thuislocatie, gecentreerd
+  op de werkelijke stand — die wegdimt zodra het pollen stopt. Stel de
+  openingshoek direct in, of vul de antenne-gain (dBi) in om 'm automatisch
+  te laten berekenen.
 
 ## Installatie via HACS
 
@@ -109,6 +118,31 @@ PstRotator → ⋮ → Opties**) en kies **Storm** uit het menu:
 Laat het windsensor-veld leeg om dit uit te zetten. De **Storm**-knop op
 de kaart werkt sowieso altijd om er handmatig naartoe te draaien.
 
+## Antenne-openingshoek en live positie
+
+Kies **Antenne** uit hetzelfde opties-menu om in te stellen:
+
+- **Openingshoek** — de -3dB-bundelbreedte van de antenne in graden,
+  rechtstreeks in te vullen, *of*
+- **Antenne-gain (dBi)** — indien ingevuld wordt de openingshoek hieruit
+  berekend (Kraus-benadering voor een symmetrische bundel:
+  `θ ≈ √(41253 / G)`). Dit is een vuistregel, geen exacte waarde per
+  antenneontwerp. Gain heeft voorrang op een handmatig ingevulde
+  openingshoek.
+
+Zodra één van beide is ingesteld, tekent de kaart een halfdoorzichtige
+driehoek voor de antennebundel, met de tophoek op de thuislocatie.
+
+Dit werkt alleen met het standaard native UDP-protocol of met rotctld —
+PstRotator's handleiding documenteert `<PST>AZ?</PST>` als positie-query,
+beantwoord als `AZ:xxx.x` op UDP-poort + 1 (bv. 12001 bij standaardpoort
+12000). De integratie vraagt dit elke 0,5 sec op zolang de antenne
+beweegt, blijft dat nog 15 sec doen nadat die tot stilstand is gekomen,
+en valt daarna terug op een rustige polling tot het volgende commando of
+een gedetecteerde (bv. handmatige) beweging. De bundel-driehoek dimt weg
+tijdens het rustige pollen en komt terug zodra er weer actief gevolgd
+wordt.
+
 ## De kaart toevoegen aan je dashboard
 
 Na installatie wordt de kaart automatisch als Lovelace-resource geregistreerd.
@@ -158,6 +192,17 @@ data:
 De werelddata (continenten) komt van [Natural Earth](https://www.naturalearthdata.com/)
 (110m resolutie, publiek domein) en wordt lokaal meegeleverd — er wordt geen
 externe data opgehaald tijdens gebruik.
+
+## Problemen oplossen
+
+`tools/pstrotator_query_test.py` is een standalone script (geen externe
+dependencies) dat de positie-query stuurt die PstRotator verwacht en
+precies print wat er terugkomt — handig om connectiviteit/firewalls te
+testen los van Home Assistant:
+
+```
+python3 tools/pstrotator_query_test.py <pstrotator-host> [poort]
+```
 
 ## Branding
 
