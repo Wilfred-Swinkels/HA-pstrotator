@@ -744,15 +744,23 @@
       if (!this._svg || !this._needleLine) return;
       this._applyStrings();
 
+      const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
+      const commanded = this._currentAzimuth();
+      const realAz = attrs.real_azimuth != null ? Number(attrs.real_azimuth) : commanded;
+      // Right after this card sends a command, show the commanded target
+      // immediately for snappy feedback. Once that grace window passes --
+      // or if the antenna moved some other way we never commanded -- the
+      // needle follows the real reported position instead, same as the
+      // beam triangle, instead of staying stuck on a stale target forever.
+      const justCommanded = Date.now() - this._lastSendTime < 2000;
       const az = this._dragging && this._dragAzimuth != null
         ? this._dragAzimuth
-        : this._currentAzimuth();
+        : justCommanded
+        ? commanded
+        : realAz;
       const readout = this.shadowRoot.getElementById("az-readout");
       if (readout) readout.textContent = `Az: ${az.toFixed(1)}°`;
       this._renderNeedle(az);
-
-      const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
-      const realAz = attrs.real_azimuth != null ? Number(attrs.real_azimuth) : az;
       this._renderBeamTriangle(realAz);
 
       const stormBtn = this.shadowRoot.getElementById("storm-btn");

@@ -22,9 +22,12 @@ CONF_BEAMWIDTH = "beamwidth"
 CONF_ANTENNA_GAIN = "antenna_gain"
 
 # How long to keep actively polling PstRotator for its real position after
-# the last detected change, before dropping back to idle.
+# the last detected change, before dropping back to idle. Idle polling still
+# runs every second (not just on command) so a move made some other way --
+# directly in PstRotator, from a different controller -- is picked up and
+# reflected in HA quickly instead of only after the next commanded move.
 POSITION_ACTIVE_POLL_INTERVAL = 0.5
-POSITION_IDLE_POLL_INTERVAL = 5.0
+POSITION_IDLE_POLL_INTERVAL = 1.0
 POSITION_ACTIVE_TIMEOUT = 15.0
 
 PROTOCOL_PSTROTATOR_UDP = "pstrotator_udp"
@@ -43,4 +46,4 @@ CARD_URL_BASE = "/pstrotator_files"
 CARD_FILENAME = "pstrotator-card.js"
 LAND_DATA_FILENAME = "land-110m.json"
 
-INTEGRATION_VERSION = "1.4.6"
+INTEGRATION_VERSION = "1.4.7"
