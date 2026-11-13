@@ -598,9 +598,8 @@
       this._beamTriangle = svgEl("path", {
         d: "",
         fill: cfg.line_color,
-        "fill-opacity": "0",
         stroke: "none",
-        style: "transition: fill-opacity 5s ease;",
+        style: "transition: fill-opacity 5s ease; fill-opacity: 0;",
       });
       svg.appendChild(this._beamTriangle);
 
@@ -713,7 +712,7 @@
       const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
       const beamwidth = attrs.beamwidth;
       if (beamwidth == null) {
-        this._beamTriangle.setAttribute("fill-opacity", "0");
+        this._beamTriangle.style.fillOpacity = "0";
         return;
       }
       const cx = this._cx;
@@ -734,7 +733,11 @@
         "d",
         `M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${largeArc} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`
       );
-      this._beamTriangle.setAttribute("fill-opacity", attrs.tracking ? "0.45" : "0");
+      // Set via the CSS `style` property (not the presentation attribute) --
+      // only style-driven changes are guaranteed to trigger the `transition`
+      // above in every browser, which is what makes this actually fade
+      // instead of snapping to the new opacity immediately.
+      this._beamTriangle.style.fillOpacity = attrs.tracking ? "0.45" : "0";
     }
 
     _updateDynamic() {
