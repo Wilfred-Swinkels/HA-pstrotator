@@ -755,7 +755,12 @@
     }
   }
 
-  customElements.define("pstrotator-card", PstRotatorCard);
+  // Guard against the script being loaded twice on the same page (e.g. via
+  // both a Lovelace resource and an older cached extra_module_url) -- a
+  // second customElements.define() for the same tag name throws.
+  if (!customElements.get("pstrotator-card")) {
+    customElements.define("pstrotator-card", PstRotatorCard);
+  }
 
   window.customCards = window.customCards || [];
   window.customCards.push({

@@ -86,16 +86,22 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
 
     registered = await _async_register_lovelace_resource(hass)
 
-    try:
-        from homeassistant.components.frontend import add_extra_js_url
-
-        add_extra_js_url(
-            hass, f"{CARD_URL_BASE}/{CARD_FILENAME}?v={INTEGRATION_VERSION}"
-        )
-    except ImportError:
-        pass
-
     if not registered:
+        # Fallback only: add_extra_js_url patches the server-rendered
+        # index.html rather than the Resources list. Only used when the
+        # Lovelace resource storage isn't available at all, so the card
+        # never ends up loaded through both mechanisms at once (which
+        # throws "pstrotator-card has already been used with this
+        # registry" on the second customElements.define() call).
+        try:
+            from homeassistant.components.frontend import add_extra_js_url
+
+            add_extra_js_url(
+                hass, f"{CARD_URL_BASE}/{CARD_FILENAME}?v={INTEGRATION_VERSION}"
+            )
+        except ImportError:
+            pass
+
         _LOGGER.warning(
             "Kon de PstRotator-kaart niet automatisch registreren als "
             "Lovelace resource; voeg %s/%s handmatig toe via Instellingen -> "
