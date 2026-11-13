@@ -55,19 +55,27 @@ async def _async_register_lovelace_resource(hass: HomeAssistant) -> bool:
             items = resources.async_items()
 
         new_url = f"{url}?v={INTEGRATION_VERSION}"
-        existing = next(
-            (item for item in items if str(item.get("url", "")).split("?")[0] == url),
-            None,
-        )
-        if existing is None:
+        matches = [
+            item for item in items if str(item.get("url", "")).split("?")[0] == url
+        ]
+
+        if not matches:
             await resources.async_create_item({"res_type": "module", "url": new_url})
-        elif existing.get("url") != new_url:
-            # Bump the cached URL's version query string so browsers that
-            # already loaded the old module fetch the new file instead of
-            # serving a stale cached copy forever.
+            return True
+
+        # Earlier releases created a new resource item on every version bump
+        # instead of updating the existing one, leaving several duplicate
+        # <script> modules registered at once -- each one calls
+        # customElements.define() on load, so only the first succeeds and
+        # the rest throw "has already been used with this registry". Keep a
+        # single entry and point it at the current version; delete the rest.
+        keep, *extra = matches
+        if keep.get("url") != new_url:
             await resources.async_update_item(
-                existing["id"], {"res_type": "module", "url": new_url}
+                keep["id"], {"res_type": "module", "url": new_url}
             )
+        for item in extra:
+            await resources.async_delete_item(item["id"])
         return True
     except Exception as err:  # noqa: BLE001
         _LOGGER.debug("Could not auto-register the Lovelace resource: %s", err)
