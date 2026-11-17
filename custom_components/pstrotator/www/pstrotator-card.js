@@ -339,7 +339,7 @@
         <ha-card>
           <div class="header">
             <div class="header-left">
-              <div class="title">${cfg.title ? cfg.title : ""}</div>
+              <div class="title" id="title"></div>
               <button class="storm-btn" id="storm-btn"></button>
             </div>
             <div class="az-readout" id="az-readout">Az: --.-&deg;</div>
@@ -348,14 +348,20 @@
             <svg id="svg" viewBox="0 0 380 380"></svg>
             <button class="zoom zoom-out" id="zoom-out">&minus;</button>
             <button class="zoom zoom-in" id="zoom-in">+</button>
-            <button class="nudge minus" id="minus">&minus;${cfg.step}&deg;</button>
-            <button class="nudge plus" id="plus">+${cfg.step}&deg;</button>
+            <button class="nudge minus" id="minus"></button>
+            <button class="nudge plus" id="plus"></button>
           </div>
           <div class="hint" id="hint"></div>
         </ha-card>
       `;
 
       this._svg = this.shadowRoot.getElementById("svg");
+      const titleEl = this.shadowRoot.getElementById("title");
+      if (titleEl) titleEl.textContent = cfg.title || "";
+      const minusBtn = this.shadowRoot.getElementById("minus");
+      if (minusBtn) minusBtn.textContent = `−${cfg.step}°`;
+      const plusBtn = this.shadowRoot.getElementById("plus");
+      if (plusBtn) plusBtn.textContent = `+${cfg.step}°`;
       this.shadowRoot
         .getElementById("minus")
         .addEventListener("click", () => this._nudge(-cfg.step));
