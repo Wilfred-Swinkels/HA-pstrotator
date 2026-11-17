@@ -65,4 +65,4 @@ CARD_URL_BASE = "/pstrotator_files"
 CARD_FILENAME = "pstrotator-card.js"
 LAND_DATA_FILENAME = "land-110m.json"
 
-INTEGRATION_VERSION = "1.5.1"
+INTEGRATION_VERSION = "1.5.2"

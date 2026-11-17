@@ -64,7 +64,7 @@
       },
       "presets": {
         "title": "Snelkeuzeknoppen",
-        "description": "Park en de vrienden-/richting-knoppen staan altijd op de kaart, maar blijven leeg (en doen niets bij een klik) totdat je hier een azimuth instelt. Laat een veld leeg om een knop leeg te houden.",
+        "description": "Knoppen doen niets als ze niet zijn ingevuld.",
         "data": {
           "park_azimuth": "Park-azimuth (graden)",
           "friend1_label": "Tekst knop vriend 1",

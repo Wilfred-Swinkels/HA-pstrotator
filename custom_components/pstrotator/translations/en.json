@@ -64,7 +64,7 @@
       },
       "presets": {
         "title": "Preset buttons",
-        "description": "Park and the friend/direction buttons always show on the card, but stay blank (and do nothing when clicked) until you set an azimuth here. Leave a field empty to keep a button blank.",
+        "description": "Buttons do nothing when not filled in.",
         "data": {
           "park_azimuth": "Park azimuth (degrees)",
           "friend1_label": "Friend 1 button label",
