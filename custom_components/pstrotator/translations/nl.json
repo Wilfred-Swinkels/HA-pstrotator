@@ -27,7 +27,8 @@
         "menu_options": {
           "connection": "Verbinding",
           "storm": "Storm",
-          "antenna": "Antenne"
+          "antenna": "Antenne",
+          "presets": "Snelkeuzeknoppen (Park, vrienden)"
         }
       },
       "connection": {
@@ -59,6 +60,25 @@
         "data": {
           "beamwidth": "Openingshoek (graden, -3dB bundelbreedte)",
           "antenna_gain": "Antenne-gain (dBi) - berekent de openingshoek automatisch"
+        }
+      },
+      "presets": {
+        "title": "Snelkeuzeknoppen",
+        "description": "Park en de vrienden-/richting-knoppen staan altijd op de kaart, maar blijven leeg (en doen niets bij een klik) totdat je hier een azimuth instelt. Laat een veld leeg om een knop leeg te houden.",
+        "data": {
+          "park_azimuth": "Park-azimuth (graden)",
+          "friend1_label": "Tekst knop vriend 1",
+          "friend1_azimuth": "Azimuth vriend 1 (graden)",
+          "friend2_label": "Tekst knop vriend 2",
+          "friend2_azimuth": "Azimuth vriend 2 (graden)",
+          "dir1_label": "Tekst knop richting 1",
+          "dir1_azimuth": "Azimuth richting 1 (graden)",
+          "dir2_label": "Tekst knop richting 2",
+          "dir2_azimuth": "Azimuth richting 2 (graden)",
+          "dir3_label": "Tekst knop richting 3",
+          "dir3_azimuth": "Azimuth richting 3 (graden)",
+          "dir4_label": "Tekst knop richting 4",
+          "dir4_azimuth": "Azimuth richting 4 (graden)"
         }
       }
     },

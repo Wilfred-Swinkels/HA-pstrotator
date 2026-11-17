@@ -27,7 +27,8 @@
         "menu_options": {
           "connection": "Connection",
           "storm": "Storm",
-          "antenna": "Antenna"
+          "antenna": "Antenna",
+          "presets": "Preset buttons (Park, friends)"
         }
       },
       "connection": {
@@ -59,6 +60,25 @@
         "data": {
           "beamwidth": "Beamwidth (degrees, -3dB)",
           "antenna_gain": "Antenna gain (dBi) - calculates the beamwidth automatically"
+        }
+      },
+      "presets": {
+        "title": "Preset buttons",
+        "description": "Park and the friend/direction buttons always show on the card, but stay blank (and do nothing when clicked) until you set an azimuth here. Leave a field empty to keep a button blank.",
+        "data": {
+          "park_azimuth": "Park azimuth (degrees)",
+          "friend1_label": "Friend 1 button label",
+          "friend1_azimuth": "Friend 1 azimuth (degrees)",
+          "friend2_label": "Friend 2 button label",
+          "friend2_azimuth": "Friend 2 azimuth (degrees)",
+          "dir1_label": "Direction 1 button label",
+          "dir1_azimuth": "Direction 1 azimuth (degrees)",
+          "dir2_label": "Direction 2 button label",
+          "dir2_azimuth": "Direction 2 azimuth (degrees)",
+          "dir3_label": "Direction 3 button label",
+          "dir3_azimuth": "Direction 3 azimuth (degrees)",
+          "dir4_label": "Direction 4 button label",
+          "dir4_azimuth": "Direction 4 azimuth (degrees)"
         }
       }
     },

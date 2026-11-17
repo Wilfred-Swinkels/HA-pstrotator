@@ -14,22 +14,37 @@
 
   const STRINGS = {
     en: {
-      hint: "Click or drag the line to point the rotor that way",
       missingEntity:
         "pstrotator-card: set 'entity' to PstRotator's azimuth number entity.",
       storm: "Storm",
+      park: "Park",
       zoomIn: "Zoom in",
       zoomOut: "Zoom out",
     },
     nl: {
-      hint: "Klik of sleep de lijn om de rotor die richting te laten draaien",
       missingEntity:
         "pstrotator-card: stel 'entity' in op de azimuth number-entiteit van PstRotator.",
       storm: "Storm",
+      park: "Park",
       zoomIn: "Inzoomen",
       zoomOut: "Uitzoomen",
     },
   };
+
+  // Preset buttons always shown on the card, blank (and inert) until an
+  // azimuth is configured for them. "storm" and "park" keep a fixed,
+  // translated label; the rest show whatever free-text label the user
+  // configured for that button.
+  const PRESET_BUTTONS = [
+    { id: "storm", cls: "storm", fixedLabelKey: "storm" },
+    { id: "park", cls: "park", fixedLabelKey: "park" },
+    { id: "friend1", cls: "friend" },
+    { id: "friend2", cls: "friend" },
+    { id: "dir1", cls: "dir" },
+    { id: "dir2", cls: "dir" },
+    { id: "dir3", cls: "dir" },
+    { id: "dir4", cls: "dir" },
+  ];
 
   function pickLang(hass) {
     const lang = (hass && (hass.language || hass.locale?.language)) || "en";
@@ -140,7 +155,7 @@
     }
 
     getCardSize() {
-      return 7;
+      return 9;
     }
 
     connectedCallback() {
@@ -168,9 +183,18 @@
       return { lat: Number(lat) || 0, lon: Number(lon) || 0 };
     }
 
-    _stormAzimuth() {
+    _presetAzimuth(id) {
       const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
-      return attrs.storm_azimuth != null ? Number(attrs.storm_azimuth) : null;
+      const v = attrs[`${id}_azimuth`];
+      return v != null ? Number(v) : null;
+    }
+
+    _presetLabel(id, fixedLabelKey) {
+      if (fixedLabelKey) {
+        return STRINGS[pickLang(this._hass)][fixedLabelKey] || "";
+      }
+      const attrs = this._hass?.states?.[this._config.entity]?.attributes || {};
+      return attrs[`${id}_label`] || "";
     }
 
     async _maybeRedrawBase() {
@@ -210,17 +234,7 @@
             padding: 0;
           }
           .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             padding: 12px 16px 0 16px;
-            gap: 8px;
-          }
-          .header-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
           }
           .title {
             font-size: 1.1rem;
@@ -230,29 +244,47 @@
             text-overflow: ellipsis;
             white-space: nowrap;
           }
-          .storm-btn {
-            display: none;
+          .preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px 0 16px;
+          }
+          .preset-btn {
             flex: none;
+            min-width: 28px;
+            min-height: 20px;
             border: none;
             border-radius: 20px;
             padding: 8px 16px;
             font-size: 1rem;
             font-weight: 600;
             color: #fff;
-            background: #c23b22;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
             cursor: pointer;
             transition: transform 0.08s ease-in-out;
           }
-          .storm-btn:hover {
+          .preset-btn:hover {
             filter: brightness(1.1);
             transform: scale(1.06);
           }
-          .storm-btn:active {
+          .preset-btn:active {
             transform: scale(0.96);
           }
+          .preset-btn.storm {
+            background: #c23b22;
+          }
+          .preset-btn.park {
+            background: #2e7d32;
+          }
+          .preset-btn.friend,
+          .preset-btn.dir {
+            background: var(--pstrotator-accent, #2f7fb8);
+          }
           .az-readout {
-            flex: none;
+            text-align: center;
+            padding: 0 16px 10px 16px;
             font-size: 1.3rem;
             font-weight: 600;
             color: var(--primary-text-color);
@@ -329,20 +361,22 @@
           .zoom.zoom-in {
             right: 24px;
           }
-          .hint {
-            text-align: center;
-            font-size: 0.78rem;
-            color: var(--secondary-text-color);
-            padding: 0 16px 10px 16px;
-          }
         </style>
         <ha-card>
           <div class="header">
-            <div class="header-left">
-              <div class="title" id="title"></div>
-              <button class="storm-btn" id="storm-btn"></button>
-            </div>
-            <div class="az-readout" id="az-readout">Az: --.-&deg;</div>
+            <div class="title" id="title"></div>
+          </div>
+          <div class="preset-row">
+            <button class="preset-btn storm" id="preset-storm"></button>
+            <button class="preset-btn park" id="preset-park"></button>
+            <button class="preset-btn friend" id="preset-friend1"></button>
+            <button class="preset-btn friend" id="preset-friend2"></button>
+          </div>
+          <div class="preset-row">
+            <button class="preset-btn dir" id="preset-dir1"></button>
+            <button class="preset-btn dir" id="preset-dir2"></button>
+            <button class="preset-btn dir" id="preset-dir3"></button>
+            <button class="preset-btn dir" id="preset-dir4"></button>
           </div>
           <div class="map-wrap">
             <svg id="svg" viewBox="0 0 380 380"></svg>
@@ -351,7 +385,7 @@
             <button class="nudge minus" id="minus"></button>
             <button class="nudge plus" id="plus"></button>
           </div>
-          <div class="hint" id="hint"></div>
+          <div class="az-readout" id="az-readout">Az: --&deg;</div>
         </ha-card>
       `;
 
@@ -374,9 +408,12 @@
       this.shadowRoot
         .getElementById("zoom-out")
         .addEventListener("click", () => this._setZoom(this._zoom / 1.6));
-      this.shadowRoot
-        .getElementById("storm-btn")
-        .addEventListener("click", () => this._goStorm());
+      for (const preset of PRESET_BUTTONS) {
+        const btn = this.shadowRoot.getElementById(`preset-${preset.id}`);
+        if (btn) {
+          btn.addEventListener("click", () => this._goPreset(preset.id));
+        }
+      }
       this._svg.addEventListener("pointerdown", (ev) => this._onPointerDown(ev));
       this._svg.addEventListener("pointermove", (ev) => this._onPointerMove(ev));
       this._svg.addEventListener("pointerup", (ev) => this._onPointerUp(ev));
@@ -389,10 +426,6 @@
 
     _applyStrings() {
       const t = STRINGS[pickLang(this._hass)];
-      const hint = this.shadowRoot.getElementById("hint");
-      if (hint) hint.textContent = t.hint;
-      const stormBtn = this.shadowRoot.getElementById("storm-btn");
-      if (stormBtn) stormBtn.textContent = t.storm;
       const zoomIn = this.shadowRoot.getElementById("zoom-in");
       const zoomOut = this.shadowRoot.getElementById("zoom-out");
       if (zoomIn) zoomIn.title = t.zoomIn;
@@ -662,7 +695,7 @@
       this._dragAzimuth = az;
       this._renderNeedle(az);
       const readout = this.shadowRoot.getElementById("az-readout");
-      if (readout) readout.textContent = `Az: ${az.toFixed(1)}°`;
+      if (readout) readout.textContent = `Az: ${Math.round(az)}°`;
       this._setAzimuth(az);
     }
 
@@ -681,10 +714,10 @@
       this._setAzimuth(az, true);
     }
 
-    _goStorm() {
-      const stormAz = this._stormAzimuth();
-      if (stormAz == null) return;
-      this._setAzimuth(wrap360(stormAz), true);
+    _goPreset(id) {
+      const az = this._presetAzimuth(id);
+      if (az == null) return;
+      this._setAzimuth(wrap360(az), true);
     }
 
     _setAzimuth(az, force) {
@@ -761,13 +794,17 @@
         ? this._dragAzimuth
         : commanded;
       const readout = this.shadowRoot.getElementById("az-readout");
-      if (readout) readout.textContent = `Az: ${az.toFixed(1)}°`;
+      if (readout) readout.textContent = `Az: ${Math.round(az)}°`;
       this._renderNeedle(az);
       this._renderBeamTriangle(realAz);
 
-      const stormBtn = this.shadowRoot.getElementById("storm-btn");
-      if (stormBtn) {
-        stormBtn.style.display = this._stormAzimuth() != null ? "inline-block" : "none";
+      for (const preset of PRESET_BUTTONS) {
+        const btn = this.shadowRoot.getElementById(`preset-${preset.id}`);
+        if (!btn) continue;
+        const configured = this._presetAzimuth(preset.id) != null;
+        btn.textContent = configured
+          ? this._presetLabel(preset.id, preset.fixedLabelKey)
+          : "";
       }
     }
   }

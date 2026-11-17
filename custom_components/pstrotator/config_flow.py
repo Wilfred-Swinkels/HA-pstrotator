@@ -14,10 +14,23 @@ from .const import (
     CONF_BEAMWIDTH,
     CONF_CUSTOM_IS_UDP,
     CONF_CUSTOM_TEMPLATE,
+    CONF_DIR1_AZIMUTH,
+    CONF_DIR1_LABEL,
+    CONF_DIR2_AZIMUTH,
+    CONF_DIR2_LABEL,
+    CONF_DIR3_AZIMUTH,
+    CONF_DIR3_LABEL,
+    CONF_DIR4_AZIMUTH,
+    CONF_DIR4_LABEL,
     CONF_ELEVATION,
+    CONF_FRIEND1_AZIMUTH,
+    CONF_FRIEND1_LABEL,
+    CONF_FRIEND2_AZIMUTH,
+    CONF_FRIEND2_LABEL,
     CONF_HOME_LATITUDE,
     CONF_HOME_LONGITUDE,
     CONF_HOST,
+    CONF_PARK_AZIMUTH,
     CONF_PORT,
     CONF_PROTOCOL,
     CONF_QTH_LOCATOR,
@@ -111,7 +124,7 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         return self.async_show_menu(
             step_id="init",
-            menu_options=["connection", "storm", "antenna"],
+            menu_options=["connection", "storm", "antenna", "presets"],
         )
 
     async def async_step_connection(
@@ -221,3 +234,58 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
             }
         )
         return self.async_show_form(step_id="antenna", data_schema=schema)
+
+    async def async_step_presets(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        current = self._current()
+
+        if user_input is not None:
+            return self.async_create_entry(title="", data={**current, **user_input})
+
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_PARK_AZIMUTH, default=current.get(CONF_PARK_AZIMUTH, "")
+                ): str,
+                vol.Optional(
+                    CONF_FRIEND1_LABEL, default=current.get(CONF_FRIEND1_LABEL, "")
+                ): str,
+                vol.Optional(
+                    CONF_FRIEND1_AZIMUTH,
+                    default=current.get(CONF_FRIEND1_AZIMUTH, ""),
+                ): str,
+                vol.Optional(
+                    CONF_FRIEND2_LABEL, default=current.get(CONF_FRIEND2_LABEL, "")
+                ): str,
+                vol.Optional(
+                    CONF_FRIEND2_AZIMUTH,
+                    default=current.get(CONF_FRIEND2_AZIMUTH, ""),
+                ): str,
+                vol.Optional(
+                    CONF_DIR1_LABEL, default=current.get(CONF_DIR1_LABEL, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR1_AZIMUTH, default=current.get(CONF_DIR1_AZIMUTH, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR2_LABEL, default=current.get(CONF_DIR2_LABEL, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR2_AZIMUTH, default=current.get(CONF_DIR2_AZIMUTH, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR3_LABEL, default=current.get(CONF_DIR3_LABEL, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR3_AZIMUTH, default=current.get(CONF_DIR3_AZIMUTH, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR4_LABEL, default=current.get(CONF_DIR4_LABEL, "")
+                ): str,
+                vol.Optional(
+                    CONF_DIR4_AZIMUTH, default=current.get(CONF_DIR4_AZIMUTH, "")
+                ): str,
+            }
+        )
+        return self.async_show_form(step_id="presets", data_schema=schema)

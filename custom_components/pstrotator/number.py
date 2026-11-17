@@ -15,16 +15,20 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from .antenna import resolve_beamwidth
 from .const import (
-    CONF_STORM_AZIMUTH,
     CONF_WIND_SPEED_ENTITY,
     CONF_WIND_SPEED_THRESHOLD,
     DOMAIN,
+    PRESET_BUTTONS,
 )
 from .home_location import resolve_home_location
 from .position_tracker import PositionTracker
 from .rotator import PstRotatorClient, PstRotatorConnectionError
 
 _LOGGER = logging.getLogger(__name__)
+
+# storm and park keep a fixed, translated button label (set client-side in
+# the card); the rest show whatever free-text label the user configured.
+_FIXED_LABEL_PRESETS = {"storm", "park"}
 
 
 async def async_setup_entry(
@@ -69,8 +73,8 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         self._real_azimuth: float | None = None
         self._tracking = False
 
-    def _storm_azimuth(self) -> float | None:
-        raw = self._client.get_option(CONF_STORM_AZIMUTH)
+    def _preset_azimuth(self, preset: str) -> float | None:
+        raw = self._client.get_option(f"{preset}_azimuth")
         try:
             return float(raw)
         except (TypeError, ValueError):
@@ -78,16 +82,21 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        """Expose home location, storm azimuth, beamwidth and live position."""
+        """Expose home location, preset buttons, beamwidth and live position."""
         lat, lon, locator = resolve_home_location(
             self.hass, self._entry.data, self._entry.options
         )
         attrs = {"home_latitude": lat, "home_longitude": lon}
         if locator:
             attrs["qth_locator"] = locator
-        storm_azimuth = self._storm_azimuth()
-        if storm_azimuth is not None:
-            attrs["storm_azimuth"] = storm_azimuth
+        for preset in PRESET_BUTTONS:
+            azimuth = self._preset_azimuth(preset)
+            if azimuth is not None:
+                attrs[f"{preset}_azimuth"] = azimuth
+            if preset not in _FIXED_LABEL_PRESETS:
+                label = self._client.get_option(f"{preset}_label")
+                if label:
+                    attrs[f"{preset}_label"] = label
         beamwidth = resolve_beamwidth(self._entry.data, self._entry.options)
         if beamwidth is not None:
             attrs["beamwidth"] = beamwidth
@@ -138,7 +147,7 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             return
 
         threshold_raw = self._client.get_option(CONF_WIND_SPEED_THRESHOLD)
-        storm_azimuth = self._storm_azimuth()
+        storm_azimuth = self._preset_azimuth("storm")
         if threshold_raw is None or storm_azimuth is None:
             return
 

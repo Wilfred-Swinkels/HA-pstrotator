@@ -20,6 +20,25 @@ CONF_WIND_SPEED_ENTITY = "wind_speed_entity"
 CONF_WIND_SPEED_THRESHOLD = "wind_speed_threshold"
 CONF_BEAMWIDTH = "beamwidth"
 CONF_ANTENNA_GAIN = "antenna_gain"
+CONF_PARK_AZIMUTH = "park_azimuth"
+CONF_FRIEND1_LABEL = "friend1_label"
+CONF_FRIEND1_AZIMUTH = "friend1_azimuth"
+CONF_FRIEND2_LABEL = "friend2_label"
+CONF_FRIEND2_AZIMUTH = "friend2_azimuth"
+CONF_DIR1_LABEL = "dir1_label"
+CONF_DIR1_AZIMUTH = "dir1_azimuth"
+CONF_DIR2_LABEL = "dir2_label"
+CONF_DIR2_AZIMUTH = "dir2_azimuth"
+CONF_DIR3_LABEL = "dir3_label"
+CONF_DIR3_AZIMUTH = "dir3_azimuth"
+CONF_DIR4_LABEL = "dir4_label"
+CONF_DIR4_AZIMUTH = "dir4_azimuth"
+
+# Button presets always shown on the card: (config key prefix, attribute
+# prefix). "storm" and "park" keep their fixed translated label and only
+# toggle between that label and blank; the rest show whatever free-text
+# label the user configured.
+PRESET_BUTTONS = ["storm", "park", "friend1", "friend2", "dir1", "dir2", "dir3", "dir4"]
 
 # How long to keep actively polling PstRotator for its real position after
 # the last detected change, before dropping back to idle. Idle polling still
@@ -46,4 +65,4 @@ CARD_URL_BASE = "/pstrotator_files"
 CARD_FILENAME = "pstrotator-card.js"
 LAND_DATA_FILENAME = "land-110m.json"
 
-INTEGRATION_VERSION = "1.4.11"
+INTEGRATION_VERSION = "1.5.0"
