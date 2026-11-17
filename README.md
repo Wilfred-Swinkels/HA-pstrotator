@@ -12,6 +12,8 @@ Control [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU)
 from Home Assistant with a colorful, interactive azimuthal world map: click
 anywhere on the map and the antenna rotator turns straight to that bearing.
 
+<p align="center"><img src="assets/card-screenshot.png" width="420" alt="PstRotator card showing the azimuthal world map, preset buttons and azimuth readout"></p>
+
 ## What's included
 
 - **Backend integration** that creates a `number` entity for the commanded

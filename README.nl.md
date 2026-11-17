@@ -12,6 +12,8 @@ Besturing van [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU
 vanuit Home Assistant, met een kleurrijke, interactieve azimutale wereldkaart:
 klik op de kaart en de antennerotor draait direct die richting op.
 
+<p align="center"><img src="assets/card-screenshot.png" width="420" alt="PstRotator-kaart met de azimutale wereldkaart, snelkeuzeknoppen en azimuth-uitlezing"></p>
+
 ## Wat zit erin
 
 - **Backend-integratie** die een `number`-entiteit aanmaakt voor de
