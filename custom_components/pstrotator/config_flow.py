@@ -169,7 +169,17 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
         current = self._current()
 
         if user_input is not None:
-            return self.async_create_entry(title="", data={**current, **user_input})
+            merged = {**current, **user_input}
+            # An EntitySelector can't have default="" (an empty string isn't
+            # a valid entity ID/UUID), so it's offered as a suggestion
+            # instead -- which means leaving it blank omits the key from
+            # user_input entirely rather than submitting "". Without this,
+            # the blind dict-merge above would keep inheriting the old
+            # value from `current` forever, and clearing the sensor would
+            # be impossible.
+            if CONF_WIND_SPEED_ENTITY not in user_input:
+                merged.pop(CONF_WIND_SPEED_ENTITY, None)
+            return self.async_create_entry(title="", data=merged)
 
         schema = vol.Schema(
             {
@@ -178,7 +188,9 @@ class PstRotatorOptionsFlow(config_entries.OptionsFlow):
                 ): str,
                 vol.Optional(
                     CONF_WIND_SPEED_ENTITY,
-                    default=current.get(CONF_WIND_SPEED_ENTITY, ""),
+                    description={
+                        "suggested_value": current.get(CONF_WIND_SPEED_ENTITY)
+                    },
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="sensor")
                 ),
