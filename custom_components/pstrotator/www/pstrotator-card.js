@@ -253,11 +253,13 @@
           }
           .preset-btn {
             flex: none;
-            min-width: 28px;
-            min-height: 20px;
+            width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             border: none;
             border-radius: 20px;
-            padding: 8px 16px;
+            padding: 8px 10px;
             font-size: 1rem;
             font-weight: 600;
             color: #fff;
@@ -392,6 +394,8 @@
       this._svg = this.shadowRoot.getElementById("svg");
       const titleEl = this.shadowRoot.getElementById("title");
       if (titleEl) titleEl.textContent = cfg.title || "";
+      const headerEl = this.shadowRoot.querySelector(".header");
+      if (headerEl) headerEl.style.display = cfg.title ? "" : "none";
       const minusBtn = this.shadowRoot.getElementById("minus");
       if (minusBtn) minusBtn.textContent = `−${cfg.step}°`;
       const plusBtn = this.shadowRoot.getElementById("plus");
