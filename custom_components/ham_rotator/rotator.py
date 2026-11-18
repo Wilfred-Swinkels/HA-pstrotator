@@ -1,4 +1,4 @@
-"""Network client that talks to PstRotator.
+﻿"""Network client that talks to a rotor controller.
 
 By default this sends PstRotator's own native UDP command
 (``<PST><AZIMUTH>123</AZIMUTH></PST>`` on port 12000) -- the input
@@ -57,12 +57,12 @@ _AZ_RESPONSE_RE = re.compile(r"AZ:\s*(-?[\d.]+)")
 _GS232_AZ_RESPONSE_RE = re.compile(r"\+?0*(\d{1,3})")
 
 
-class PstRotatorConnectionError(Exception):
-    """Raised when PstRotator cannot be reached or rejects a command."""
+class RotatorConnectionError(Exception):
+    """Raised when the rotor controller cannot be reached or rejects a command."""
 
 
-class PstRotatorClient:
-    """Sends azimuth commands to a running PstRotator instance."""
+class RotatorClient:
+    """Sends azimuth commands to a rotor controller or PstRotator instance."""
 
     def __init__(self, hass, data: dict, options: dict | None = None) -> None:
         self.hass = hass
@@ -83,7 +83,7 @@ class PstRotatorClient:
         return self._conf(key, default)
 
     async def async_set_azimuth(self, azimuth: float) -> None:
-        """Send a new target azimuth to PstRotator."""
+        """Send a new target azimuth to the rotor controller."""
         protocol = self._conf(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP)
         if protocol == PROTOCOL_CUSTOM:
             await self._async_send_custom(azimuth)
@@ -108,7 +108,7 @@ class PstRotatorClient:
                 asyncio.DatagramProtocol, remote_addr=(host, port)
             )
         except OSError as err:
-            raise PstRotatorConnectionError(
+            raise RotatorConnectionError(
                 f"Kan geen UDP-pakket sturen naar {host}:{port}: {err}"
             ) from err
         try:
@@ -128,7 +128,7 @@ class PstRotatorClient:
                     asyncio.open_connection(host, port), TIMEOUT
                 )
             except (OSError, asyncio.TimeoutError) as err:
-                raise PstRotatorConnectionError(
+                raise RotatorConnectionError(
                     f"Kan geen verbinding maken met PstRotator op {host}:{port}: {err}"
                 ) from err
 
@@ -156,7 +156,7 @@ class PstRotatorClient:
                     asyncio.open_connection(host, port), TIMEOUT
                 )
             except (OSError, asyncio.TimeoutError) as err:
-                raise PstRotatorConnectionError(
+                raise RotatorConnectionError(
                     f"Kan geen verbinding maken met de rotorcontroller op {host}:{port}: {err}"
                 ) from err
 
@@ -167,7 +167,7 @@ class PstRotatorClient:
                 writer.close()
 
     async def async_get_azimuth(self) -> float | None:
-        """Read the real-world azimuth back from PstRotator, if possible."""
+        """Read the real-world azimuth back from the rotor controller, if possible."""
         protocol = self._conf(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP)
         if protocol == PROTOCOL_ROTCTLD:
             return await self._async_get_azimuth_rotctld()
@@ -281,7 +281,7 @@ class PstRotatorClient:
         try:
             message = template.format(az=azimuth, azimuth=azimuth).encode("ascii")
         except (KeyError, ValueError) as err:
-            raise PstRotatorConnectionError(
+            raise RotatorConnectionError(
                 f"Ongeldige custom command template: {err}"
             ) from err
 
@@ -294,7 +294,7 @@ class PstRotatorClient:
                         asyncio.open_connection(host, port), TIMEOUT
                     )
                 except (OSError, asyncio.TimeoutError) as err:
-                    raise PstRotatorConnectionError(
+                    raise RotatorConnectionError(
                         f"Kan geen verbinding maken met {host}:{port}: {err}"
                     ) from err
                 try:

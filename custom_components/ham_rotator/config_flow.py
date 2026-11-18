@@ -1,4 +1,4 @@
-"""Config flow for the PstRotator integration."""
+"""Config flow for the HAm-rotator integration."""
 from __future__ import annotations
 
 from typing import Any
@@ -49,9 +49,9 @@ from .const import (
 from .maidenhead import InvalidLocatorError, locator_to_latlon
 
 PROTOCOL_OPTIONS = {
-    PROTOCOL_PSTROTATOR_UDP: "PstRotator native UDP (standaard, poort 12000)",
+    PROTOCOL_PSTROTATOR_UDP: "PstRotator native UDP (default, port 12000)",
     PROTOCOL_ROTCTLD: "Hamlib rotctld-compatible",
-    PROTOCOL_YAESU_GS232: "Yaesu GS-232(B) (direct naar de rotorcontroller, geen PC nodig)",
+    PROTOCOL_YAESU_GS232: "Yaesu GS-232(B) (direct to rotor controller)",
     PROTOCOL_CUSTOM: "Custom text command (UDP/TCP)",
 }
 
@@ -67,8 +67,8 @@ def _validate_qth_locator(user_input: dict[str, Any], errors: dict[str, str]) ->
         errors[CONF_QTH_LOCATOR] = "invalid_qth_locator"
 
 
-class PstRotatorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for PstRotator."""
+class HamRotatorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for HAm-rotator."""
 
     VERSION = 1
 
@@ -108,12 +108,12 @@ class PstRotatorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> PstRotatorOptionsFlow:
-        return PstRotatorOptionsFlow(config_entry)
+    ) -> HamRotatorOptionsFlow:
+        return HamRotatorOptionsFlow(config_entry)
 
 
-class PstRotatorOptionsFlow(config_entries.OptionsFlow):
-    """Handle PstRotator options, presented as a menu."""
+class HamRotatorOptionsFlow(config_entries.OptionsFlow):
+    """Handle HAm-rotator options, presented as a menu."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._config_entry = config_entry

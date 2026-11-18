@@ -1,8 +1,8 @@
-"""Constants for the PstRotator integration."""
+"""Constants for the HAm-rotator integration."""
 from __future__ import annotations
 
-DOMAIN = "pstrotator"
-DEFAULT_NAME = "PstRotator"
+DOMAIN = "ham_rotator"
+DEFAULT_NAME = "HAm-rotator"
 
 PLATFORMS = ["number"]
 
@@ -65,8 +65,8 @@ DEFAULT_YAESU_GS232_PORT = 4533
 
 DEFAULT_CUSTOM_TEMPLATE = "{az:.1f}\n"
 
-CARD_URL_BASE = "/pstrotator_files"
-CARD_FILENAME = "pstrotator-card.js"
+CARD_URL_BASE = "/ham_rotator_files"
+CARD_FILENAME = "ham-rotator-card.js"
 LAND_DATA_FILENAME = "land-110m.json"
 
-INTEGRATION_VERSION = "1.6.0"
+INTEGRATION_VERSION = "2.0.0"

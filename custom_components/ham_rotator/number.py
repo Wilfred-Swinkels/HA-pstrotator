@@ -1,4 +1,4 @@
-"""Number entity for the PstRotator target azimuth."""
+"""Number entity for the HAm-rotator target azimuth."""
 from __future__ import annotations
 
 import logging
@@ -22,7 +22,7 @@ from .const import (
 )
 from .home_location import resolve_home_location
 from .position_tracker import PositionTracker
-from .rotator import PstRotatorClient, PstRotatorConnectionError
+from .rotator import RotatorClient, RotatorConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,14 +36,14 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the PstRotator azimuth number entity."""
+    """Set up the HAm-rotator azimuth number entity."""
     runtime = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        [PstRotatorAzimuthNumber(entry, runtime.client, runtime.tracker)]
+        [HamRotatorAzimuthNumber(entry, runtime.client, runtime.tracker)]
     )
 
 
-class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
+class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
     """Represents the commanded antenna azimuth."""
 
     _attr_has_entity_name = True
@@ -56,7 +56,7 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
     _attr_mode = NumberMode.BOX
 
     def __init__(
-        self, entry: ConfigEntry, client: PstRotatorClient, tracker: PositionTracker
+        self, entry: ConfigEntry, client: RotatorClient, tracker: PositionTracker
     ) -> None:
         self._entry = entry
         self._client = client
@@ -66,8 +66,6 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,
-            manufacturer="YO3DMU",
-            model="PstRotator",
         )
         self._storm_active = False
         self._real_azimuth: float | None = None
@@ -133,8 +131,8 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         self._real_azimuth = azimuth
         self._tracking = tracking
         if external and azimuth is not None:
-            # The antenna moved without us commanding it (PstRotator itself,
-            # a physical control box, ...) -- treat the new reading as the
+            # The antenna moved without us commanding it (the rotor software
+            # itself, a physical control box, ...) -- treat the new reading as the
             # new target so the card's needle follows reality instead of
             # staying pinned to a now-stale HA-side command.
             self._attr_native_value = azimuth
@@ -175,11 +173,11 @@ class PstRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             self._storm_active = False
 
     async def async_set_native_value(self, value: float) -> None:
-        """Send the new azimuth to PstRotator and update state."""
+        """Send the new azimuth to the rotor controller and update state."""
         value = round(value % 360, 1)
         try:
             await self._client.async_set_azimuth(value)
-        except PstRotatorConnectionError as err:
+        except RotatorConnectionError as err:
             raise HomeAssistantError(str(err)) from err
 
         self._tracker.notify_command_sent()

@@ -1,28 +1,30 @@
 *[Lees dit in het Nederlands](README.nl.md)*
-*[Stap-voor-stap handleiding (NL)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Wilfred-Swinkels/HA-pstrotator/main/docs/setup.nl.html)*
+*[Stap-voor-stap handleiding (NL)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Wilfred-Swinkels/HAm-rotator/main/docs/setup.nl.html)*
 
-<p align="center"><img src="assets/logo.png" width="140" alt="PstRotator logo"></p>
+<p align="center"><img src="assets/logo.png" width="140" alt="HAm-rotator logo"></p>
 
-# PstRotator for Home Assistant
+# HAm-rotator for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 Made by [ON4NDO](https://www.qrz.com/db/ON4NDO).
 
-Control [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm) (YO3DMU)
-from Home Assistant with a colorful, interactive azimuthal world map: click
-anywhere on the map and the antenna rotator turns straight to that bearing.
+Control your ham radio antenna rotator from Home Assistant with a
+colorful, interactive azimuthal world map: click anywhere on the map and
+the antenna rotator turns straight to that bearing. Talks directly to a
+Yaesu GS-232(B)-compatible controller, to [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm)
+(YO3DMU), to Hamlib rotctld, or to a custom command of your own.
 
-<p align="center"><img src="assets/card-screenshot.png" width="420" alt="PstRotator card showing the azimuthal world map, preset buttons and azimuth readout"></p>
+<p align="center"><img src="assets/card-screenshot.png" width="420" alt="HAm-rotator card showing the azimuthal world map, preset buttons and azimuth readout"></p>
 
-See the [step by step configuration](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Wilfred-Swinkels/HA-pstrotator/main/docs/setup.html) guide for a full walkthrough, from creating the entity to adding the card to your dashboard.
+See the [step by step configuration](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Wilfred-Swinkels/HAm-rotator/main/docs/setup.html) guide for a full walkthrough, from creating the entity to adding the card to your dashboard.
 
 ## What's included
 
 - **Backend integration** that creates a `number` entity for the commanded
   azimuth. Every change (from the map, the HA UI, a service call, or an
-  automation) is forwarded to PstRotator over the network.
-- **Lovelace card** (`pstrotator-card`) with an **azimuthal-equidistant
+  automation) is forwarded to the rotor controller over the network.
+- **Lovelace card** (`ham-rotator-card`) with an **azimuthal-equidistant
   world map** centered on your HA home location. This projection was
   chosen deliberately instead of a plain Mercator world map: the angle of
   every point on the map relative to the center is *exactly* the true
@@ -36,7 +38,7 @@ See the [step by step configuration](https://htmlpreview.github.io/?https://raw.
     colors stay stable across reloads), plus distance rings and a compass
     rose with N/E/S/W. Set `land_color` to force every country to the same
     flat color instead.
-  - Home location configurable via a **QTH locator** (e.g. `JO32wd`),
+  - Home location configurable via a **QTH locator** (e.g. `JO21QE`),
     manual coordinates, or automatically from Home Assistant's own home
     location.
   - Card text follows Home Assistant's own language (English/Dutch for
@@ -45,22 +47,23 @@ See the [step by step configuration](https://htmlpreview.github.io/?https://raw.
   threshold, and the antenna automatically turns to that azimuth once wind
   speed crosses the threshold. A **Storm** button also appears on the card
   for turning to it manually at any time.
-- **Live position + beam triangle**: when using the default native UDP
-  protocol or rotctld, the integration queries PstRotator's *actual*
-  antenna position (not just the commanded target) every 0.5s while it's
-  moving, continuing for 15s after it settles before dropping back to an
-  idle poll. The card draws a transparent triangle for the antenna's
-  beamwidth — apex at the home location, centered on the real position —
-  that fades out once polling goes idle. Configure the beamwidth directly,
-  or enter the antenna's gain (dBi) to have it calculated automatically.
+- **Live position + beam triangle**: when using a protocol that supports
+  reading the position back (native PstRotator UDP, rotctld, or Yaesu
+  GS-232), the integration queries the rotor's *actual* antenna position
+  (not just the commanded target) every 0.5s while it's moving, continuing
+  for 15s after it settles before dropping back to an idle poll. The card
+  draws a transparent triangle for the antenna's beamwidth — apex at the
+  home location, centered on the real position — that fades out once
+  polling goes idle. Configure the beamwidth directly, or enter the
+  antenna's gain (dBi) to have it calculated automatically.
 
 ## Installation via HACS
 
-PstRotator is in the HACS default repository list, so in most cases:
+HAm-rotator is in the HACS default repository list, so in most cases:
 
-1. HACS → search for **PstRotator** and install it.
+1. HACS → search for **HAm-rotator** and install it.
 2. Restart Home Assistant.
-3. **Settings → Devices & services → Add integration → PstRotator**.
+3. **Settings → Devices & services → Add integration → HAm-rotator**.
 
 Not showing up in search yet (freshly added, or your HACS cache is stale)?
 Add it manually as a custom repository instead:
@@ -69,29 +72,24 @@ Add it manually as a custom repository instead:
 2. Add this repository URL, category **Integration**.
 3. Continue from step 1 above.
 
-## Configuring PstRotator
+## Configuring your rotor controller
 
-By default this integration sends **PstRotator's own native UDP command**
-(`<PST><AZIMUTH>123</AZIMUTH></PST>` on port `12000`) — the input
-PstRotator listens for out of the box, so there's nothing to enable inside
-PstRotator itself:
+Four protocols are available under **Protocol** when setting up the
+integration (and later in its options):
 
-1. Note the **IP address** of the PC running PstRotator.
-2. Enter that **host/IP address** when setting up the integration in Home
-   Assistant (the port defaults to `12000`, adjustable later through the
-   integration's options).
-
-Three alternative protocols are available under **Protocol** in the
-integration's options, if you need them:
-
+- **Yaesu GS-232(B)** — talks directly to a rotor controller that speaks
+  this protocol natively (for example an Arco controller), over TCP.
+  Typically port `4533`, but check your controller's manual. No extra
+  software needed in between — this is the simplest setup if your
+  hardware supports it.
+- **PstRotator native UDP** (default, port `12000`) — sends
+  [PstRotator](https://www.qsl.net/yo3dmu/index_Page346.htm)'s own UDP
+  command (`<PST><AZIMUTH>123</AZIMUTH></PST>`), the input PstRotator
+  listens for out of the box. Note the IP address of the PC running
+  PstRotator and enter that as the host.
 - **Hamlib rotctld-compatible** — if you enabled PstRotator's "Hamlib Net
   rotctl" interface (Settings → Rotor interfacing), typically on port
-  `4533`.
-- **Yaesu GS-232(B)** — for rotor controllers that speak this protocol
-  natively (for example an Arco controller), talking straight to the
-  hardware over TCP without PstRotator or a separate rotctld daemon
-  running on an always-on PC in between. Typically port `4533` as well,
-  but check your controller's manual.
+  `4533`, or any other rotctld-compatible daemon.
 - **Custom text command** — set your own command template, using `{az}` as
   a placeholder for the azimuth, for example:
 
@@ -104,8 +102,8 @@ integration's options, if you need them:
 The center of the map — and therefore the zero reference for every
 computed bearing — is determined in this order of priority:
 
-1. A **QTH locator** (Maidenhead grid square, e.g. `JO32` or, more
-   precisely, `JO32wd`), entered during setup or via the integration's
+1. A **QTH locator** (Maidenhead grid square, e.g. `JO21` or, more
+   precisely, `JO21QE`), entered during setup or via the integration's
    options. This is the recommended approach: more precise than a country,
    and the notation amateur radio operators already use.
 2. Manual **latitude/longitude**, also via the integration's options, for
@@ -121,7 +119,7 @@ unless you deliberately want to override it (see `home_latitude` /
 ## Storm position
 
 Open the integration's options (**Settings → Devices & services →
-PstRotator → ⋮ → Options**) and pick **Storm** from the menu:
+HAm-rotator → ⋮ → Options**) and pick **Storm** from the menu:
 
 - **Storm position azimuth** — where the antenna should turn to.
 - **Wind speed sensor** — pick any `sensor` entity that reports wind speed
@@ -148,14 +146,14 @@ With either set, the card draws a semi-transparent triangle representing
 the antenna's beam, apex at the home location.
 
 This only works with protocols that support reading the position back:
-the default native UDP protocol, rotctld, and Yaesu GS-232(B) — not the
-custom text command protocol, which is send-only. For native UDP,
-PstRotator's manual documents `<PST>AZ?</PST>` as the position query,
-answered as `AZ:xxx.x` on UDP port + 1 (e.g. 12001 for the default port
-12000). The integration polls this every 0.5s while the antenna is
-moving, keeps polling for 15s after it settles, then drops back to an
-idle poll until the next command or a detected (e.g. manual) movement.
-The beam triangle fades out while idle and back in once tracking resumes.
+native PstRotator UDP, rotctld, and Yaesu GS-232(B) — not the custom text
+command protocol, which is send-only. For native UDP, PstRotator's manual
+documents `<PST>AZ?</PST>` as the position query, answered as `AZ:xxx.x`
+on UDP port + 1 (e.g. 12001 for the default port 12000). The integration
+polls this every 0.5s while the antenna is moving, keeps polling for 15s
+after it settles, then drops back to an idle poll until the next command
+or a detected (e.g. manual) movement. The beam triangle fades out while
+idle and back in once tracking resumes.
 
 ## Adding the card to your dashboard
 
@@ -163,8 +161,8 @@ After installation the card is automatically registered as a Lovelace
 resource. Then add a card with:
 
 ```yaml
-type: custom:pstrotator-card
-entity: number.pstrotator_azimuth
+type: custom:ham-rotator-card
+entity: number.ham_rotator_azimuth
 step: 5
 ```
 
@@ -175,17 +173,17 @@ Optional configuration options:
 
 | Option | Description | Default |
 |---|---|---|
-| `entity` | **(required)** PstRotator's `number` entity | — |
+| `entity` | **(required)** The integration's `number` entity | — |
 | `title` | Title shown above the card | *(none)* |
 | `step` | Step size of the +/− buttons | `5` |
 | `home_latitude` / `home_longitude` | Override the location from the integration/HA | see "Home location" above |
 | `land_color` | Force every country to this one flat color instead of the per-country palette | *(per-country palette)* |
-| `land_stroke`, `ocean_from`, `ocean_to`, `line_color` | Customize other colors | see `pstrotator-card.js` |
+| `land_stroke`, `ocean_from`, `ocean_to`, `line_color` | Customize other colors | see `ham-rotator-card.js` |
 
 If the card doesn't appear automatically in the resource list, add it
 manually via **Settings → Dashboards → Resources**:
 
-- URL: `/pstrotator_files/pstrotator-card.js`
+- URL: `/ham_rotator_files/ham-rotator-card.js`
 - Type: JavaScript module
 
 ## Services / automations
@@ -196,7 +194,7 @@ drive the azimuth directly from automations too:
 ```yaml
 action: number.set_value
 target:
-  entity_id: number.pstrotator_azimuth
+  entity_id: number.ham_rotator_azimuth
 data:
   value: 123.4
 ```
@@ -210,9 +208,9 @@ is fetched at runtime.
 ## Troubleshooting
 
 `tools/pstrotator_query_test.py` is a standalone script (stdlib only) that
-sends the position query PstRotator expects and prints exactly what comes
-back, useful for checking connectivity/firewalls independently of Home
-Assistant:
+sends the position query the PstRotator software expects and prints
+exactly what comes back, useful for checking connectivity/firewalls
+independently of Home Assistant:
 
 ```
 python3 tools/pstrotator_query_test.py <pstrotator-host> [port]
@@ -220,7 +218,7 @@ python3 tools/pstrotator_query_test.py <pstrotator-host> [port]
 
 ## Branding
 
-The integration ships its own icon/logo in `custom_components/pstrotator/brand/`
+The integration ships its own icon/logo in `custom_components/ham_rotator/brand/`
 (`icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`). Since Home Assistant
 2026.3, local brand images like these are picked up automatically and take
 priority over the [home-assistant/brands](https://github.com/home-assistant/brands)

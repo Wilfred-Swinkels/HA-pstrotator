@@ -1,4 +1,4 @@
-"""Resolve the home location used to center the PstRotator map.
+"""Resolve the home location used to center the HAm-rotator map.
 
 Priority: an explicit QTH locator, then explicit lat/lon, then Home
 Assistant's own configured home location (zone.home).

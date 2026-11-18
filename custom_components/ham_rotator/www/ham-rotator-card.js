@@ -1,12 +1,12 @@
-/**
- * PstRotator Card
+﻿/**
+ * HAm-rotator Card
  * Azimuthal-equidistant world map centered on the Home Assistant home
- * location. Click or drag the line to send a bearing to PstRotator, nudge
+ * location. Click or drag the line to send a bearing to the rotator, nudge
  * it with the +/- buttons, zoom in/out, or jump to a configured storm
  * position.
  */
 (() => {
-  const LAND_URL = "/pstrotator_files/land-110m.json";
+  const LAND_URL = "/ham_rotator_files/land-110m.json";
   const DEG = Math.PI / 180;
   const EARTH_HALF_CIRCUMFERENCE_KM = 20015;
   const MIN_ZOOM = 1;
@@ -15,7 +15,7 @@
   const STRINGS = {
     en: {
       missingEntity:
-        "pstrotator-card: set 'entity' to PstRotator's azimuth number entity.",
+        "ham-rotator-card: set 'entity' to the integration's azimuth number entity.",
       storm: "Storm",
       park: "Park",
       zoomIn: "Zoom in",
@@ -23,7 +23,7 @@
     },
     nl: {
       missingEntity:
-        "pstrotator-card: stel 'entity' in op de azimuth number-entiteit van PstRotator.",
+        "ham-rotator-card: stel 'entity' in op de azimuth number-entiteit van de integratie.",
       storm: "Storm",
       park: "Park",
       zoomIn: "Inzoomen",
@@ -84,7 +84,7 @@
 
   // Azimuthal-equidistant projection centered on (lat0, lon0).
   // The returned angle `az` is the true great-circle bearing from the
-  // center to (lat, lon) -- exactly the value PstRotator needs. `maxAngle`
+  // center to (lat, lon) -- exactly the value the rotator needs. `maxAngle`
   // is the great-circle distance (radians) mapped to radius R -- Math.PI
   // (the whole world) at zoom level 1, smaller as the map zooms in.
   function projectPoint(lat0, lon0, lat, lon, R, maxAngle = Math.PI) {
@@ -121,7 +121,7 @@
     return el;
   }
 
-  class PstRotatorCard extends HTMLElement {
+  class HamRotatorCard extends HTMLElement {
     static getStubConfig() {
       return { entity: "", step: 5 };
     }
@@ -163,8 +163,8 @@
     }
 
     // Home location priority: explicit card config, then the attributes
-    // PstRotator's number entity exposes (QTH locator / manual override
-    // resolved by the integration), then Home Assistant's own home zone.
+    // the number entity exposes (QTH locator / manual override resolved
+    // by the integration), then Home Assistant's own home zone.
     _homeLocation() {
       const cfg = this._config;
       const attrs = this._hass?.states?.[cfg.entity]?.attributes || {};
@@ -281,7 +281,7 @@
           }
           .preset-btn.friend,
           .preset-btn.dir {
-            background: var(--pstrotator-accent, #2f7fb8);
+            background: var(--ham-rotator-accent, #2f7fb8);
           }
           .az-readout {
             text-align: center;
@@ -315,7 +315,7 @@
             font-size: 1rem;
             font-weight: 600;
             color: #fff;
-            background: var(--pstrotator-accent, #2f7fb8);
+            background: var(--ham-rotator-accent, #2f7fb8);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
             cursor: pointer;
             transition: transform 0.08s ease-in-out;
@@ -343,7 +343,7 @@
             font-weight: 700;
             line-height: 1;
             color: #fff;
-            background: var(--pstrotator-accent, #2f7fb8);
+            background: var(--ham-rotator-accent, #2f7fb8);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
             cursor: pointer;
             opacity: 0.85;
@@ -492,7 +492,7 @@
           cy,
           r: R,
           fill: "url(#oceanGrad)",
-          stroke: "var(--pstrotator-rim, #0a1f33)",
+          stroke: "var(--ham-rotator-rim, #0a1f33)",
           "stroke-width": 2,
         })
       );
@@ -610,7 +610,7 @@
             "font-size": isCardinal ? "13" : "9",
             "font-weight": isCardinal ? "700" : "500",
             fill: isCardinal
-              ? "var(--pstrotator-accent, #ff5a36)"
+              ? "var(--ham-rotator-accent, #ff5a36)"
               : "var(--secondary-text-color, #888)",
           });
           const names = { 0: "N", 90: "E", 180: "S", 270: "W" };
@@ -627,7 +627,7 @@
           cx,
           cy,
           r: 5,
-          fill: "var(--pstrotator-home, #ffd84a)",
+          fill: "var(--ham-rotator-home, #ffd84a)",
           stroke: "#6b4e00",
           "stroke-width": 1.2,
         })
@@ -815,15 +815,15 @@
   // Guard against the script being loaded twice on the same page (e.g. via
   // both a Lovelace resource and an older cached extra_module_url) -- a
   // second customElements.define() for the same tag name throws.
-  if (!customElements.get("pstrotator-card")) {
-    customElements.define("pstrotator-card", PstRotatorCard);
+  if (!customElements.get("ham-rotator-card")) {
+    customElements.define("ham-rotator-card", HamRotatorCard);
   }
 
   window.customCards = window.customCards || [];
   window.customCards.push({
-    type: "pstrotator-card",
-    name: "PstRotator Card",
+    type: "ham-rotator-card",
+    name: "HAm-rotator Card",
     description:
-      "Azimuthal world map to control a PstRotator antenna rotator.",
+      "Azimuthal world map to control a ham radio antenna rotator.",
   });
 })();

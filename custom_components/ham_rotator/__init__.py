@@ -1,8 +1,9 @@
-"""The PstRotator integration.
+"""The HAm-rotator integration.
 
 Provides a number entity that represents the target antenna azimuth and
-forwards every change to PstRotator over the network, plus a bundled
-Lovelace map card that lets you pick a bearing by clicking a world map.
+forwards every change to the rotor controller over the network, plus a
+bundled Lovelace map card that lets you pick a bearing by clicking a
+world map.
 """
 from __future__ import annotations
 
@@ -15,16 +16,16 @@ from homeassistant.core import HomeAssistant
 
 from .const import CARD_FILENAME, CARD_URL_BASE, DOMAIN, INTEGRATION_VERSION, PLATFORMS
 from .position_tracker import PositionTracker
-from .rotator import PstRotatorClient
+from .rotator import RotatorClient
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class PstRotatorRuntimeData:
+class HamRotatorRuntimeData:
     """Per-config-entry runtime objects."""
 
-    client: PstRotatorClient
+    client: RotatorClient
     tracker: PositionTracker
 
 
@@ -111,7 +112,7 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         # index.html rather than the Resources list. Only used when the
         # Lovelace resource storage isn't available at all, so the card
         # never ends up loaded through both mechanisms at once (which
-        # throws "pstrotator-card has already been used with this
+        # throws "ham-rotator-card has already been used with this
         # registry" on the second customElements.define() call).
         try:
             from homeassistant.components.frontend import add_extra_js_url
@@ -123,7 +124,7 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
             pass
 
         _LOGGER.warning(
-            "Kon de PstRotator-kaart niet automatisch registreren als "
+            "Kon de HAm-rotator-kaart niet automatisch registreren als "
             "Lovelace resource; voeg %s/%s handmatig toe via Instellingen -> "
             "Dashboards -> Resources (type: JavaScript module).",
             CARD_URL_BASE,
@@ -134,13 +135,13 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up PstRotator from a config entry."""
+    """Set up HAm-rotator from a config entry."""
     await _async_register_frontend(hass)
 
-    client = PstRotatorClient(hass, dict(entry.data), dict(entry.options))
+    client = RotatorClient(hass, dict(entry.data), dict(entry.options))
     tracker = PositionTracker(hass, client)
     tracker.start()
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = PstRotatorRuntimeData(
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = HamRotatorRuntimeData(
         client=client, tracker=tracker
     )
 
@@ -150,15 +151,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    runtime: PstRotatorRuntimeData = hass.data[DOMAIN][entry.entry_id]
+    runtime: HamRotatorRuntimeData = hass.data[DOMAIN][entry.entry_id]
     runtime.client.update_options(dict(entry.options))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a PstRotator config entry."""
+    """Unload a HAm-rotator config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        runtime: PstRotatorRuntimeData = hass.data[DOMAIN].pop(entry.entry_id)
+        runtime: HamRotatorRuntimeData = hass.data[DOMAIN].pop(entry.entry_id)
         await runtime.tracker.async_stop()
         await runtime.client.async_close()
     return unload_ok

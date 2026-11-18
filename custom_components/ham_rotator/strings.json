@@ -2,36 +2,37 @@
   "config": {
     "step": {
       "user": {
-        "title": "PstRotator toevoegen",
+        "title": "HAm-rotator toevoegen",
         "description": "Standaard wordt PstRotator's eigen UDP-ingang gebruikt (poort 12000) - daarvoor hoef je niets in PstRotator zelf aan te passen. Kies desgewenst Hamlib rotctld of een custom commando bij Protocol.",
         "data": {
           "name": "Naam",
           "host": "Hostnaam of IP-adres",
           "port": "Poort",
           "protocol": "Protocol",
-          "qth_locator": "QTH-locator (bv. JO32wd) — bepaalt het midden van de kaart"
+          "qth_locator": "QTH-locator (bv. JO21QE) — bepaalt het midden van de kaart"
         }
       }
     },
     "error": {
-      "invalid_qth_locator": "Ongeldige QTH-locator. Gebruik bijvoorbeeld JO32 of JO32wd."
+      "invalid_qth_locator": "Ongeldige QTH-locator. Gebruik bijvoorbeeld JO21 of JO21QE."
     },
     "abort": {
-      "already_configured": "Deze PstRotator-instantie is al geconfigureerd."
+      "already_configured": "Deze HAm-rotator-instantie is al geconfigureerd."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "PstRotator-opties",
+        "title": "HAm-rotator-opties",
         "menu_options": {
           "connection": "Verbinding",
           "storm": "Storm",
-          "antenna": "Antenne"
+          "antenna": "Antenne",
+          "presets": "Snelkeuzeknoppen (Park, vrienden)"
         }
       },
       "connection": {
-        "title": "Verbinding met PstRotator",
+        "title": "Verbinding",
         "data": {
           "host": "Hostnaam of IP-adres",
           "port": "Poort",
@@ -39,7 +40,7 @@
           "elevation": "Vaste elevatie (graden, alleen voor rotctld)",
           "custom_template": "Custom command template (plaatshouder: az)",
           "custom_is_udp": "Custom command via UDP (uit = TCP)",
-          "qth_locator": "QTH-locator (bv. JO32wd) — heeft voorrang op onderstaande coördinaten",
+          "qth_locator": "QTH-locator (bv. JO21QE) — heeft voorrang op onderstaande coördinaten",
           "home_latitude": "Thuislocatie breedtegraad (optioneel, i.p.v. QTH-locator)",
           "home_longitude": "Thuislocatie lengtegraad (optioneel, i.p.v. QTH-locator)"
         }
@@ -63,7 +64,7 @@
       }
     },
     "error": {
-      "invalid_qth_locator": "Ongeldige QTH-locator. Gebruik bijvoorbeeld JO32 of JO32wd."
+      "invalid_qth_locator": "Ongeldige QTH-locator. Gebruik bijvoorbeeld JO21 of JO21QE."
     }
   }
 }

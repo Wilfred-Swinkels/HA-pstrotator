@@ -2,28 +2,28 @@
   "config": {
     "step": {
       "user": {
-        "title": "Add PstRotator",
+        "title": "Add HAm-rotator",
         "description": "By default this uses PstRotator's own UDP input (port 12000) - no changes needed inside PstRotator itself. Pick Hamlib rotctld or a custom command under Protocol if you'd rather use those.",
         "data": {
           "name": "Name",
           "host": "Host or IP address",
           "port": "Port",
           "protocol": "Protocol",
-          "qth_locator": "QTH locator (e.g. JO32wd) — sets the center of the map"
+          "qth_locator": "QTH locator (e.g. JO21QE) — sets the center of the map"
         }
       }
     },
     "error": {
-      "invalid_qth_locator": "Invalid QTH locator. Try something like JO32 or JO32wd."
+      "invalid_qth_locator": "Invalid QTH locator. Try something like JO21 or JO21QE."
     },
     "abort": {
-      "already_configured": "This PstRotator instance is already configured."
+      "already_configured": "This HAm-rotator instance is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "PstRotator options",
+        "title": "HAm-rotator options",
         "menu_options": {
           "connection": "Connection",
           "storm": "Storm",
@@ -32,7 +32,7 @@
         }
       },
       "connection": {
-        "title": "Connection to PstRotator",
+        "title": "Connection",
         "data": {
           "host": "Host or IP address",
           "port": "Port",
@@ -40,7 +40,7 @@
           "elevation": "Fixed elevation (degrees, rotctld only)",
           "custom_template": "Custom command template (placeholder: az)",
           "custom_is_udp": "Send custom command over UDP (off = TCP)",
-          "qth_locator": "QTH locator (e.g. JO32wd) — takes priority over the coordinates below",
+          "qth_locator": "QTH locator (e.g. JO21QE) — takes priority over the coordinates below",
           "home_latitude": "Home latitude (optional, instead of a QTH locator)",
           "home_longitude": "Home longitude (optional, instead of a QTH locator)"
         }
@@ -83,7 +83,7 @@
       }
     },
     "error": {
-      "invalid_qth_locator": "Invalid QTH locator. Try something like JO32 or JO32wd."
+      "invalid_qth_locator": "Invalid QTH locator. Try something like JO21 or JO21QE."
     }
   }
 }

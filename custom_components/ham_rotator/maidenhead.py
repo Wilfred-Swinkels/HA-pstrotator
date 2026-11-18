@@ -1,6 +1,6 @@
 """Maidenhead (QRA) grid locator <-> latitude/longitude conversion.
 
-Standard amateur-radio grid locator, e.g. "JO32wd". Supports 2/4/6/8
+Standard amateur-radio grid locator, e.g. "JO21QE". Supports 2/4/6/8
 character locators; the returned coordinate is the center of the
 smallest cell the locator resolves to.
 """

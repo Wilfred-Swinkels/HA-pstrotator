@@ -1,4 +1,5 @@
-"""Adaptive real-position polling for PstRotator (rotctld only).
+"""Adaptive real-position polling for protocols that support reading the
+real-world azimuth back (native PstRotator UDP, rotctld, Yaesu GS-232).
 
 Polls every POSITION_ACTIVE_POLL_INTERVAL while the rotator has moved
 recently, continuing for POSITION_ACTIVE_TIMEOUT seconds after the last
@@ -29,7 +30,7 @@ def _angle_diff(a: float, b: float) -> float:
 
 
 class PositionTracker:
-    """Tracks PstRotator's real-world azimuth via periodic rotctld polls."""
+    """Tracks the rotor's real-world azimuth via periodic position polls."""
 
     def __init__(self, hass, client) -> None:
         self.hass = hass
@@ -109,8 +110,8 @@ class PositionTracker:
                             self._last_change = time.monotonic()
                             self._active = True
                             # Nobody told us to expect this -- the antenna
-                            # was moved some other way (PstRotator itself,
-                            # a physical control box). Mark it so listeners
+                            # was moved some other way (the rotor software
+                            # itself, a physical control box). Mark it so listeners
                             # can treat the new reading as the new target,
                             # not just a real-position-catching-up update.
                             self._external_change = True
@@ -118,5 +119,5 @@ class PositionTracker:
             except asyncio.CancelledError:
                 raise
             except Exception:  # noqa: BLE001
-                _LOGGER.exception("Error in PstRotator position tracker")
+                _LOGGER.exception("Error in HAm-rotator position tracker")
                 await asyncio.sleep(POSITION_IDLE_POLL_INTERVAL)
