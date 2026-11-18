@@ -245,22 +245,21 @@
             white-space: nowrap;
           }
           .preset-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             padding: 10px 16px 0 16px;
           }
           .preset-btn {
-            flex: none;
-            width: 100px;
+            width: 100%;
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             border: none;
             border-radius: 20px;
-            padding: 8px 10px;
-            font-size: 1rem;
+            padding: 8px 6px;
+            font-size: 0.92rem;
             font-weight: 600;
             color: #fff;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);

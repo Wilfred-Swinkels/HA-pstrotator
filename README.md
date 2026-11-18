@@ -56,11 +56,18 @@ See the [step by step configuration](https://htmlpreview.github.io/?https://raw.
 
 ## Installation via HACS
 
+PstRotator is in the HACS default repository list, so in most cases:
+
+1. HACS → search for **PstRotator** and install it.
+2. Restart Home Assistant.
+3. **Settings → Devices & services → Add integration → PstRotator**.
+
+Not showing up in search yet (freshly added, or your HACS cache is stale)?
+Add it manually as a custom repository instead:
+
 1. HACS → top-right **⋮** → **Custom repositories**.
 2. Add this repository URL, category **Integration**.
-3. Search for **PstRotator** in HACS and install it.
-4. Restart Home Assistant.
-5. **Settings → Devices & services → Add integration → PstRotator**.
+3. Continue from step 1 above.
 
 ## Configuring PstRotator
 
