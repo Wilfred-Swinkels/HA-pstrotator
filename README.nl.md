@@ -83,12 +83,17 @@ zelf aan te zetten:
    Home Assistant (de poort staat standaard op `12000`, later aanpasbaar
    via de opties van de integratie).
 
-Twee alternatieve protocollen zijn beschikbaar bij **Protocol** in de
+Drie alternatieve protocollen zijn beschikbaar bij **Protocol** in de
 opties van de integratie, mocht je die nodig hebben:
 
 - **Hamlib rotctld-compatible** — als je PstRotator's "Hamlib Net rotctl"
   interface hebt ingeschakeld (Settings → Rotor interfacing), meestal op
   poort `4533`.
+- **Yaesu GS-232(B)** — voor rotorcontrollers die dit protocol direct
+  zelf spreken (bijvoorbeeld een Arco-controller): Home Assistant praat
+  dan rechtstreeks met de hardware over TCP, zonder dat PstRotator of een
+  los draaiende rotctld-daemon op een altijd-aan-PC ertussen nodig is.
+  Meestal ook poort `4533`, maar check de handleiding van je controller.
 - **Custom text command** — stel je eigen commando-template in, met `{az}`
   als plaatshouder voor de azimuth, bijvoorbeeld:
 
@@ -145,15 +150,17 @@ Kies **Antenne** uit hetzelfde opties-menu om in te stellen:
 Zodra één van beide is ingesteld, tekent de kaart een halfdoorzichtige
 driehoek voor de antennebundel, met de tophoek op de thuislocatie.
 
-Dit werkt alleen met het standaard native UDP-protocol of met rotctld —
-PstRotator's handleiding documenteert `<PST>AZ?</PST>` als positie-query,
-beantwoord als `AZ:xxx.x` op UDP-poort + 1 (bv. 12001 bij standaardpoort
-12000). De integratie vraagt dit elke 0,5 sec op zolang de antenne
-beweegt, blijft dat nog 15 sec doen nadat die tot stilstand is gekomen,
-en valt daarna terug op een rustige polling tot het volgende commando of
-een gedetecteerde (bv. handmatige) beweging. De bundel-driehoek dimt weg
-tijdens het rustige pollen en komt terug zodra er weer actief gevolgd
-wordt.
+Dit werkt alleen met protocollen die de positie kunnen terugmelden: het
+standaard native UDP-protocol, rotctld, en Yaesu GS-232(B) — niet met
+het custom text command-protocol, dat alleen kan versturen. Voor native
+UDP documenteert PstRotator's handleiding `<PST>AZ?</PST>` als
+positie-query, beantwoord als `AZ:xxx.x` op UDP-poort + 1 (bv. 12001 bij
+standaardpoort 12000). De integratie vraagt dit elke 0,5 sec op zolang de
+antenne beweegt, blijft dat nog 15 sec doen nadat die tot stilstand is
+gekomen, en valt daarna terug op een rustige polling tot het volgende
+commando of een gedetecteerde (bv. handmatige) beweging. De
+bundel-driehoek dimt weg tijdens het rustige pollen en komt terug zodra
+er weer actief gevolgd wordt.
 
 ## De kaart toevoegen aan je dashboard
 

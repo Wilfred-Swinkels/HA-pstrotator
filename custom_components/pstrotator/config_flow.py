@@ -44,12 +44,14 @@ from .const import (
     PROTOCOL_CUSTOM,
     PROTOCOL_PSTROTATOR_UDP,
     PROTOCOL_ROTCTLD,
+    PROTOCOL_YAESU_GS232,
 )
 from .maidenhead import InvalidLocatorError, locator_to_latlon
 
 PROTOCOL_OPTIONS = {
     PROTOCOL_PSTROTATOR_UDP: "PstRotator native UDP (standaard, poort 12000)",
     PROTOCOL_ROTCTLD: "Hamlib rotctld-compatible",
+    PROTOCOL_YAESU_GS232: "Yaesu GS-232(B) (direct naar de rotorcontroller, geen PC nodig)",
     PROTOCOL_CUSTOM: "Custom text command (UDP/TCP)",
 }
 

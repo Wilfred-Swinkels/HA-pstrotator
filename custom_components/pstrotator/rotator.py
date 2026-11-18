@@ -14,6 +14,16 @@ Reading the real position back uses PstRotator's own query protocol too
 source port) -- so reading it means briefly listening on that port
 ourselves. rotctld's ``p`` query remains available as an alternative for
 setups using that protocol instead.
+
+A fourth mode speaks the Yaesu GS-232(B) rotator-controller protocol
+directly over TCP (confirmed against the GS-232B command reference and
+the remotehams.com GS-232B protocol thread). This is for rotor
+controllers that understand GS-232 natively (e.g. the Arco controller),
+letting Home Assistant talk straight to the hardware without PstRotator
+or a separate rotctld daemon running on an always-on PC in between.
+Commands are terminated with ``\r``: ``Mxxx\r`` sets the azimuth to a
+3-digit zero-padded degree value, ``C\r`` queries it (answered as
+``+0xxx\r\n``).
 """
 from __future__ import annotations
 
@@ -30,9 +40,11 @@ from .const import (
     CONF_PROTOCOL,
     DEFAULT_CUSTOM_TEMPLATE,
     DEFAULT_PSTROTATOR_UDP_PORT,
+    DEFAULT_YAESU_GS232_PORT,
     PROTOCOL_CUSTOM,
     PROTOCOL_PSTROTATOR_UDP,
     PROTOCOL_ROTCTLD,
+    PROTOCOL_YAESU_GS232,
     ROTCTLD_PORT,
 )
 
@@ -42,6 +54,7 @@ TIMEOUT = 3.0
 QUERY_TIMEOUT = 1.5
 
 _AZ_RESPONSE_RE = re.compile(r"AZ:\s*(-?[\d.]+)")
+_GS232_AZ_RESPONSE_RE = re.compile(r"\+?0*(\d{1,3})")
 
 
 class PstRotatorConnectionError(Exception):
@@ -76,6 +89,8 @@ class PstRotatorClient:
             await self._async_send_custom(azimuth)
         elif protocol == PROTOCOL_ROTCTLD:
             await self._async_send_rotctld(azimuth)
+        elif protocol == PROTOCOL_YAESU_GS232:
+            await self._async_send_yaesu_gs232(azimuth)
         else:
             await self._async_send_pstrotator_udp(azimuth)
 
@@ -129,11 +144,35 @@ class PstRotatorClient:
             finally:
                 writer.close()
 
+    async def _async_send_yaesu_gs232(self, azimuth: float) -> None:
+        host = self._conf(CONF_HOST)
+        port = int(self._conf(CONF_PORT, DEFAULT_YAESU_GS232_PORT))
+        deg = int(round(azimuth)) % 360
+        command = f"M{deg:03d}\r"
+
+        async with self._lock:
+            try:
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(host, port), TIMEOUT
+                )
+            except (OSError, asyncio.TimeoutError) as err:
+                raise PstRotatorConnectionError(
+                    f"Kan geen verbinding maken met de rotorcontroller op {host}:{port}: {err}"
+                ) from err
+
+            try:
+                writer.write(command.encode("ascii"))
+                await writer.drain()
+            finally:
+                writer.close()
+
     async def async_get_azimuth(self) -> float | None:
         """Read the real-world azimuth back from PstRotator, if possible."""
         protocol = self._conf(CONF_PROTOCOL, PROTOCOL_PSTROTATOR_UDP)
         if protocol == PROTOCOL_ROTCTLD:
             return await self._async_get_azimuth_rotctld()
+        if protocol == PROTOCOL_YAESU_GS232:
+            return await self._async_get_azimuth_yaesu_gs232()
         if protocol == PROTOCOL_PSTROTATOR_UDP:
             return await self._async_get_azimuth_native_udp()
         return None  # custom protocol has no defined read-back
@@ -203,6 +242,35 @@ class PstRotatorClient:
                 return None
             finally:
                 writer.close()
+
+    async def _async_get_azimuth_yaesu_gs232(self) -> float | None:
+        host = self._conf(CONF_HOST)
+        port = int(self._conf(CONF_PORT, DEFAULT_YAESU_GS232_PORT))
+
+        async with self._lock:
+            try:
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(host, port), TIMEOUT
+                )
+            except (OSError, asyncio.TimeoutError):
+                return None
+
+            try:
+                writer.write(b"C\r")
+                await writer.drain()
+                line = await asyncio.wait_for(reader.readline(), TIMEOUT)
+            except (asyncio.TimeoutError, OSError):
+                return None
+            finally:
+                writer.close()
+
+        match = _GS232_AZ_RESPONSE_RE.search(line.decode(errors="ignore"))
+        if not match:
+            return None
+        try:
+            return float(match.group(1))
+        except ValueError:
+            return None
 
     async def _async_send_custom(self, azimuth: float) -> None:
         host = self._conf(CONF_HOST)

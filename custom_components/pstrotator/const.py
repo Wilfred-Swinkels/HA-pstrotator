@@ -52,12 +52,16 @@ POSITION_ACTIVE_TIMEOUT = 15.0
 PROTOCOL_PSTROTATOR_UDP = "pstrotator_udp"
 PROTOCOL_ROTCTLD = "rotctld"
 PROTOCOL_CUSTOM = "custom"
+PROTOCOL_YAESU_GS232 = "yaesu_gs232"
 
 # PstRotator's own UDP input, e.g. <PST><AZIMUTH>123</AZIMUTH></PST> on
 # port 12000 -- this is PstRotator's native/default remote-control input
 # and needs no extra configuration inside PstRotator itself.
 DEFAULT_PSTROTATOR_UDP_PORT = 12000
 ROTCTLD_PORT = 4533
+# Common default for rotor controllers (e.g. Green Heron, many DIY
+# ethernet-to-serial bridges) that speak Yaesu GS-232(B) directly over TCP.
+DEFAULT_YAESU_GS232_PORT = 4533
 
 DEFAULT_CUSTOM_TEMPLATE = "{az:.1f}\n"
 
@@ -65,4 +69,4 @@ CARD_URL_BASE = "/pstrotator_files"
 CARD_FILENAME = "pstrotator-card.js"
 LAND_DATA_FILENAME = "land-110m.json"
 
-INTEGRATION_VERSION = "1.5.3"
+INTEGRATION_VERSION = "1.6.0"

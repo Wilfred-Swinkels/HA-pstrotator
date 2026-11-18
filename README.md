@@ -81,12 +81,17 @@ PstRotator itself:
    Assistant (the port defaults to `12000`, adjustable later through the
    integration's options).
 
-Two alternative protocols are available under **Protocol** in the
+Three alternative protocols are available under **Protocol** in the
 integration's options, if you need them:
 
 - **Hamlib rotctld-compatible** — if you enabled PstRotator's "Hamlib Net
   rotctl" interface (Settings → Rotor interfacing), typically on port
   `4533`.
+- **Yaesu GS-232(B)** — for rotor controllers that speak this protocol
+  natively (for example an Arco controller), talking straight to the
+  hardware over TCP without PstRotator or a separate rotctld daemon
+  running on an always-on PC in between. Typically port `4533` as well,
+  but check your controller's manual.
 - **Custom text command** — set your own command template, using `{az}` as
   a placeholder for the azimuth, for example:
 
@@ -142,7 +147,9 @@ Pick **Antenna** from the same options menu to configure:
 With either set, the card draws a semi-transparent triangle representing
 the antenna's beam, apex at the home location.
 
-This only works with the default native UDP protocol or with rotctld —
+This only works with protocols that support reading the position back:
+the default native UDP protocol, rotctld, and Yaesu GS-232(B) — not the
+custom text command protocol, which is send-only. For native UDP,
 PstRotator's manual documents `<PST>AZ?</PST>` as the position query,
 answered as `AZ:xxx.x` on UDP port + 1 (e.g. 12001 for the default port
 12000). The integration polls this every 0.5s while the antenna is
