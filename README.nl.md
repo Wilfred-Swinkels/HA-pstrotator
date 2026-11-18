@@ -1,4 +1,5 @@
 *[Read this in English](README.md)*
+*[Step by step configuration (EN)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Wilfred-Swinkels/HA-pstrotator/main/docs/setup.html)*
 
 <p align="center"><img src="assets/logo.png" width="140" alt="PstRotator logo"></p>
 
@@ -13,6 +14,8 @@ vanuit Home Assistant, met een kleurrijke, interactieve azimutale wereldkaart:
 klik op de kaart en de antennerotor draait direct die richting op.
 
 <p align="center"><img src="assets/card-screenshot.png" width="420" alt="PstRotator-kaart met de azimutale wereldkaart, snelkeuzeknoppen en azimuth-uitlezing"></p>
+
+Bekijk de [stap-voor-stap handleiding](https://htmlpreview.github.io/?https://raw.githubusercontent.com/Wilfred-Swinkels/HA-pstrotator/main/docs/setup.nl.html) voor een complete uitleg, van het aanmaken van de entiteit tot het toevoegen van de kaart aan je dashboard.
 
 ## Wat zit erin
 
