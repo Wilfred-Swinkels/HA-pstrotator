@@ -151,8 +151,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    runtime: HamRotatorRuntimeData = hass.data[DOMAIN][entry.entry_id]
-    runtime.client.update_options(dict(entry.options))
+    """Reload the entry so changed options take full effect.
+
+    `RotatorClient` reads options live on every call, so most settings
+    (host, port, protocol, ...) would already pick up a change without
+    this. But the number entity's wind-sensor state-change listeners are
+    registered once in `async_added_to_hass` -- only a reload re-runs that
+    and subscribes to a newly configured (or changed) sensor.
+    """
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

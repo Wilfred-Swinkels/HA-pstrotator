@@ -122,15 +122,29 @@ passen, tenzij je bewust wilt overschrijven (zie `home_latitude` /
 Open de opties van de integratie (**Instellingen → Apparaten & diensten →
 HAm-rotator → ⋮ → Opties**) en kies **Storm** uit het menu:
 
-- **Stormstand azimuth** — waar de antenne naartoe moet draaien.
+- **Stormstand azimuth** — vaste terugval: waar de antenne naartoe draait
+  als er geen windrichting-sensor (hieronder) is ingesteld.
 - **Windsnelheid-sensor** — kies een `sensor`-entiteit die windsnelheid
   rapporteert (bv. van een lokale weerstation-integratie).
 - **Winddrempel** — zodra de sensorwaarde hierboven komt, draait de
-  antenne automatisch naar de stormstand (in welke eenheid die sensor ook
-  rapporteert).
+  antenne automatisch (in welke eenheid die sensor ook rapporteert).
+- **Windrichting-sensor (realtime)** — optioneel; indien ingesteld tekent
+  de kaart een pijl op de kompasroos met de actuele windrichting (half op
+  de buitenring, half erbuiten, naar binnen wijzend), die rood kleurt
+  zodra de winddrempel hierboven overschreden wordt.
+- **Windrichting-sensor (10-minuten-gemiddelde)** — optioneel; indien
+  ingesteld krijgt deze voorrang op de vaste stormstand zodra de
+  winddrempel overschreden wordt: de antenne volgt dan de wind in plaats
+  van een vaste waarde. Een 10-minuten-gemiddelde sensor is hier
+  aanbevolen boven de realtime-sensor, zodat een enkele windvlaag de
+  antenne niet achterna laat draaien.
+- **Draairichting bij storm** — bij het volgen van de wind: ofwel recht de
+  wind in, ofwel haaks erop (van de twee haakse opties wordt steeds
+  degene met de minste rotatie vanaf de huidige stand gekozen).
 
-Laat het windsensor-veld leeg om dit uit te zetten. De **Storm**-knop op
-de kaart werkt sowieso altijd om er handmatig naartoe te draaien.
+Laat het windsnelheid-sensor-veld leeg om dit helemaal uit te zetten. De
+**Storm**-knop op de kaart werkt sowieso altijd om handmatig naar de vaste
+stormstand te draaien.
 
 ## Antenne-openingshoek en live positie
 

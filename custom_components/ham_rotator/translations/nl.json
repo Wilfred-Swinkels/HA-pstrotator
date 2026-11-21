@@ -47,11 +47,14 @@
       },
       "storm": {
         "title": "Stormstand",
-        "description": "Stel een azimuth in waar de antenne automatisch naartoe draait zodra de windsnelheid boven de ingestelde drempel komt. Laat het windsensor-veld leeg om dit uit te zetten.",
+        "description": "Stel een azimuth in waar de antenne automatisch naartoe draait zodra de windsnelheid boven de ingestelde drempel komt. Laat het windsensor-veld leeg om dit uit te zetten. Is er een gemiddelde-windrichting-sensor ingesteld, dan volgt de antenne de wind in plaats van de vaste stormstand.",
         "data": {
-          "storm_azimuth": "Stormstand azimuth (graden)",
+          "storm_azimuth": "Stormstand azimuth (graden) — terugval als er geen windrichting-sensor is ingesteld",
           "wind_speed_entity": "Windsnelheid-sensor",
-          "wind_speed_threshold": "Winddrempel (zelfde eenheid als de sensor)"
+          "wind_speed_threshold": "Winddrempel (zelfde eenheid als de sensor)",
+          "wind_direction_entity": "Windrichting-sensor (realtime, getoond als pijl op de kaart)",
+          "wind_direction_avg_entity": "Windrichting-sensor (10-minuten-gemiddelde, gebruikt om naar te draaien)",
+          "storm_turn_mode": "Draairichting bij storm"
         }
       },
       "antenna": {

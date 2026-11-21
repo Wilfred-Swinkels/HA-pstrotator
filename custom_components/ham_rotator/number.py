@@ -15,10 +15,15 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from .antenna import resolve_beamwidth
 from .const import (
+    CONF_STORM_TURN_MODE,
+    CONF_WIND_DIRECTION_AVG_ENTITY,
+    CONF_WIND_DIRECTION_ENTITY,
     CONF_WIND_SPEED_ENTITY,
     CONF_WIND_SPEED_THRESHOLD,
     DOMAIN,
     PRESET_BUTTONS,
+    STORM_TURN_MODE_PERPENDICULAR,
+    STORM_TURN_MODE_WITH_WIND,
 )
 from .home_location import resolve_home_location
 from .position_tracker import PositionTracker
@@ -29,6 +34,14 @@ _LOGGER = logging.getLogger(__name__)
 # storm and park keep a fixed, translated button label (set client-side in
 # the card); the rest show whatever free-text label the user configured.
 _FIXED_LABEL_PRESETS = {"storm", "park"}
+
+
+def _wrap360(value: float) -> float:
+    return value % 360
+
+
+def _angle_diff(a: float, b: float) -> float:
+    return abs(((a - b + 180) % 360) - 180)
 
 
 async def async_setup_entry(
@@ -70,6 +83,9 @@ class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         self._storm_active = False
         self._real_azimuth: float | None = None
         self._tracking = False
+        self._wind_speed: float | None = None
+        self._wind_direction: float | None = None
+        self._wind_direction_avg: float | None = None
 
     def _preset_azimuth(self, preset: str) -> float | None:
         raw = self._client.get_option(f"{preset}_azimuth")
@@ -101,6 +117,14 @@ class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         if self._real_azimuth is not None:
             attrs["real_azimuth"] = self._real_azimuth
         attrs["tracking"] = self._tracking
+        if self._wind_direction is not None:
+            attrs["wind_direction"] = self._wind_direction
+        threshold = self._client.get_option(CONF_WIND_SPEED_THRESHOLD)
+        if self._wind_speed is not None and threshold not in (None, ""):
+            try:
+                attrs["wind_alert"] = self._wind_speed > float(threshold)
+            except (TypeError, ValueError):
+                pass
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -120,6 +144,44 @@ class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
                 )
             )
 
+        # Realtime wind direction, for the arrow shown on the card.
+        wind_direction_entity_id = self._client.get_option(CONF_WIND_DIRECTION_ENTITY)
+        if wind_direction_entity_id:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass,
+                    [wind_direction_entity_id],
+                    self._async_wind_direction_changed,
+                )
+            )
+            direction_state = self.hass.states.get(wind_direction_entity_id)
+            if direction_state is not None:
+                try:
+                    self._wind_direction = float(direction_state.state)
+                except (TypeError, ValueError):
+                    pass
+
+        # 10-minute-average wind direction, used to pick the storm azimuth --
+        # smoother than the realtime reading, so a single gust doesn't send
+        # the antenna chasing it.
+        wind_direction_avg_entity_id = self._client.get_option(
+            CONF_WIND_DIRECTION_AVG_ENTITY
+        )
+        if wind_direction_avg_entity_id:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass,
+                    [wind_direction_avg_entity_id],
+                    self._async_wind_direction_avg_changed,
+                )
+            )
+            avg_state = self.hass.states.get(wind_direction_avg_entity_id)
+            if avg_state is not None:
+                try:
+                    self._wind_direction_avg = float(avg_state.state)
+                except (TypeError, ValueError):
+                    pass
+
         self._tracker.add_listener(self._on_position_update)
         self.async_on_remove(
             lambda: self._tracker.remove_listener(self._on_position_update)
@@ -138,6 +200,48 @@ class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             self._attr_native_value = azimuth
         self.async_write_ha_state()
 
+    async def _async_wind_direction_changed(self, event: Event) -> None:
+        """Track the realtime wind direction, shown as an arrow on the card."""
+        new_state = event.data.get("new_state")
+        if new_state is None:
+            return
+        try:
+            self._wind_direction = float(new_state.state)
+        except (TypeError, ValueError):
+            return
+        self.async_write_ha_state()
+
+    async def _async_wind_direction_avg_changed(self, event: Event) -> None:
+        """Track the 10-minute-average wind direction, used for storm turns."""
+        new_state = event.data.get("new_state")
+        if new_state is None:
+            return
+        try:
+            self._wind_direction_avg = float(new_state.state)
+        except (TypeError, ValueError):
+            return
+
+    def _storm_target_azimuth(self) -> float | None:
+        """Pick where to turn for storm protection.
+
+        Prefers the averaged wind direction (turned into or perpendicular to
+        the wind, per the configured mode) over the fixed storm azimuth, so
+        the antenna tracks the actual wind instead of a single static value.
+        """
+        if self._wind_direction_avg is not None:
+            mode = self._client.get_option(
+                CONF_STORM_TURN_MODE, STORM_TURN_MODE_WITH_WIND
+            )
+            if mode == STORM_TURN_MODE_PERPENDICULAR:
+                current = self._attr_native_value or 0.0
+                option_a = _wrap360(self._wind_direction_avg + 90)
+                option_b = _wrap360(self._wind_direction_avg - 90)
+                if _angle_diff(current, option_a) <= _angle_diff(current, option_b):
+                    return option_a
+                return option_b
+            return _wrap360(self._wind_direction_avg)
+        return self._preset_azimuth("storm")
+
     async def _async_wind_speed_changed(self, event: Event) -> None:
         """Move to the storm azimuth once wind speed crosses the threshold."""
         new_state = event.data.get("new_state")
@@ -145,8 +249,7 @@ class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
             return
 
         threshold_raw = self._client.get_option(CONF_WIND_SPEED_THRESHOLD)
-        storm_azimuth = self._preset_azimuth("storm")
-        if threshold_raw is None or storm_azimuth is None:
+        if threshold_raw is None:
             return
 
         try:
@@ -155,22 +258,28 @@ class HamRotatorAzimuthNumber(NumberEntity, RestoreEntity):
         except (TypeError, ValueError):
             return
 
+        self._wind_speed = wind_speed
+
+        target_azimuth = self._storm_target_azimuth()
+
         if wind_speed > threshold:
             if not self._storm_active:
                 self._storm_active = True
-                _LOGGER.warning(
-                    "Windsnelheid (%s) boven drempel (%s) - antenne naar "
-                    "stormstand %.1f°",
-                    new_state.state,
-                    threshold_raw,
-                    storm_azimuth,
-                )
-                try:
-                    await self.async_set_native_value(storm_azimuth)
-                except HomeAssistantError as err:
-                    _LOGGER.error("Kon niet naar stormstand draaien: %s", err)
+                if target_azimuth is not None:
+                    _LOGGER.warning(
+                        "Windsnelheid (%s) boven drempel (%s) - antenne naar "
+                        "%.1f°",
+                        new_state.state,
+                        threshold_raw,
+                        target_azimuth,
+                    )
+                    try:
+                        await self.async_set_native_value(target_azimuth)
+                    except HomeAssistantError as err:
+                        _LOGGER.error("Kon niet naar stormstand draaien: %s", err)
         else:
             self._storm_active = False
+        self.async_write_ha_state()
 
     async def async_set_native_value(self, value: float) -> None:
         """Send the new azimuth to the rotor controller and update state."""

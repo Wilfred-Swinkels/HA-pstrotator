@@ -121,15 +121,29 @@ unless you deliberately want to override it (see `home_latitude` /
 Open the integration's options (**Settings → Devices & services →
 HAm-rotator → ⋮ → Options**) and pick **Storm** from the menu:
 
-- **Storm position azimuth** — where the antenna should turn to.
+- **Storm position azimuth** — fixed fallback: where the antenna turns to
+  if no wind direction sensor is configured (below).
 - **Wind speed sensor** — pick any `sensor` entity that reports wind speed
   (e.g. from a local weather station integration).
 - **Wind threshold** — once the sensor's value goes above this, the
-  antenna turns to the storm azimuth automatically (in whatever unit that
-  sensor reports in).
+  antenna turns automatically (in whatever unit that sensor reports in).
+- **Wind direction sensor (realtime)** — optional; if set, the card draws
+  an arrow on the compass rose showing live wind direction (straddling the
+  outer ring, pointing inward), turning red once the wind threshold above
+  is crossed.
+- **Wind direction sensor (10-minute average)** — optional; if set, this
+  takes priority over the fixed storm azimuth once the wind threshold is
+  crossed: the antenna turns to track the wind instead of a static value.
+  A 10-minute-average sensor is recommended here (rather than the realtime
+  one) so a single gust doesn't send the antenna chasing it.
+- **Storm turn direction** — when turning to track the wind, either turn
+  straight into the wind, or perpendicular to it (whichever of the two
+  perpendicular options needs the least rotation from the current
+  position).
 
-Leave the wind speed sensor empty to turn this off. Either way, the
-**Storm** button on the card always lets you turn to that azimuth by hand.
+Leave the wind speed sensor empty to turn this off entirely. Either way,
+the **Storm** button on the card always lets you turn to the fixed storm
+azimuth by hand.
 
 ## Antenna beamwidth and live position
 

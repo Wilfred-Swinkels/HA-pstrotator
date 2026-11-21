@@ -483,6 +483,23 @@
       clip.appendChild(svgEl("circle", { cx, cy, r: R }));
       defs.appendChild(clip);
 
+      // Wind arrow gradients: same off-center radial-highlight technique as
+      // the ocean sphere above, so the two-tone dart reads as glossy/3D
+      // instead of flat. One pair for the normal (yellow) state, one for
+      // the storm-alert (red) state.
+      const windGradSpecs = [
+        { id: "windLightGrad", from: "#ffffff", to: "var(--ham-rotator-wind-light, #fff59d)" },
+        { id: "windDarkGrad", from: "#ffe9a8", to: "var(--ham-rotator-wind-dark, #f9a825)" },
+        { id: "windAlertLightGrad", from: "#ffffff", to: "var(--ham-rotator-wind-alert-light, #ff8a65)" },
+        { id: "windAlertDarkGrad", from: "#ff9e8a", to: "var(--ham-rotator-wind-alert-dark, #b71c1c)" },
+      ];
+      for (const spec of windGradSpecs) {
+        const g = svgEl("radialGradient", { id: spec.id, cx: "35%", cy: "28%", r: "85%" });
+        g.appendChild(svgEl("stop", { offset: "0%", "stop-color": spec.from }));
+        g.appendChild(svgEl("stop", { offset: "100%", "stop-color": spec.to }));
+        defs.appendChild(g);
+      }
+
       svg.appendChild(defs);
 
       // Ocean background
@@ -666,6 +683,100 @@
         fill: cfg.line_color,
       });
       svg.appendChild(this._needleDot);
+
+      // Wind direction arrow: a compact dart (width == height) that
+      // straddles the circle's edge (half inside the ocean fill, half
+      // outside) and points inward. Two-tone (split down the middle) for a
+      // faceted look, like a weather-vane. Drawn once pointing north
+      // (straight up); direction is then applied purely via a CSS
+      // `transform: rotate` on the wrapping group around the compass
+      // center, so changes animate smoothly instead of the shape being
+      // rebuilt (and snapping) on every update. Hidden until a wind
+      // direction reading is available; turns red (still two-tone) once
+      // wind speed crosses the configured storm threshold.
+      {
+        const cx = this._cx;
+        const cy = this._cy;
+        const R = this._R;
+        const size = 22;
+        const half = size / 2;
+        const wingSpread = half;
+        const tailPullIn = size * 0.3;
+        // Pointing north: tip closer to center (smaller radius), tail
+        // further out, wings spread left/right.
+        const tip = { x: cx, y: cy - R + half };
+        const tailY = cy - R - half;
+        const tailNotch = { x: cx, y: tailY + tailPullIn };
+        const rightWing = { x: cx + wingSpread, y: tailY };
+        const leftWing = { x: cx - wingSpread, y: tailY };
+        const f1 = (n) => n.toFixed(1);
+        const outlineD =
+          `M${f1(tip.x)},${f1(tip.y)} L${f1(rightWing.x)},${f1(rightWing.y)} ` +
+          `L${f1(tailNotch.x)},${f1(tailNotch.y)} L${f1(leftWing.x)},${f1(leftWing.y)} Z`;
+        const leftHalfD =
+          `M${f1(tip.x)},${f1(tip.y)} L${f1(tailNotch.x)},${f1(tailNotch.y)} ` +
+          `L${f1(leftWing.x)},${f1(leftWing.y)} Z`;
+        const rightHalfD =
+          `M${f1(tip.x)},${f1(tip.y)} L${f1(rightWing.x)},${f1(rightWing.y)} ` +
+          `L${f1(tailNotch.x)},${f1(tailNotch.y)} Z`;
+
+        this._windArrowGroup = svgEl("g", {
+          style:
+            `display: none; transform-origin: ${cx}px ${cy}px; ` +
+            "transition: transform 2.5s ease;",
+        });
+        // A separate outline tracing only the outer silhouette (never the
+        // shared seam between the two halves) -- drawn first so the two
+        // fills layer on top and cover its inner half, leaving just a
+        // subtle outer border with no stroke down the middle.
+        const windArrowOutline = svgEl("path", {
+          d: outlineD,
+          fill: "none",
+          stroke: "rgba(0, 0, 0, 0.35)",
+          "stroke-width": 1,
+          "stroke-linejoin": "round",
+        });
+        this._windArrowLeft = svgEl("path", {
+          d: leftHalfD,
+          style: "transition: fill 0.3s ease;",
+        });
+        this._windArrowRight = svgEl("path", {
+          d: rightHalfD,
+          style: "transition: fill 0.3s ease;",
+        });
+        this._windArrowGroup.appendChild(windArrowOutline);
+        this._windArrowGroup.appendChild(this._windArrowLeft);
+        this._windArrowGroup.appendChild(this._windArrowRight);
+      }
+      svg.appendChild(this._windArrowGroup);
+      this._windArrowAngle = null;
+    }
+
+    _renderWindArrow(direction, alert) {
+      if (!this._windArrowGroup) return;
+      if (direction == null || !Number.isFinite(direction)) {
+        this._windArrowGroup.style.display = "none";
+        this._windArrowAngle = null;
+        return;
+      }
+      const lightFill = alert ? "url(#windAlertLightGrad)" : "url(#windLightGrad)";
+      const darkFill = alert ? "url(#windAlertDarkGrad)" : "url(#windDarkGrad)";
+
+      // Accumulate rotation (rather than using `direction` directly) so a
+      // wrap across 360/0 takes the short way instead of spinning back
+      // around -- each step only ever moves by the shortest signed delta.
+      if (this._windArrowAngle == null) {
+        this._windArrowAngle = direction;
+      } else {
+        const prev = this._windArrowAngle;
+        const delta = (((direction - prev) % 360) + 540) % 360 - 180;
+        this._windArrowAngle = prev + delta;
+      }
+
+      this._windArrowGroup.style.transform = `rotate(${this._windArrowAngle}deg)`;
+      this._windArrowLeft.setAttribute("fill", lightFill);
+      this._windArrowRight.setAttribute("fill", darkFill);
+      this._windArrowGroup.style.display = "";
     }
 
     _azimuthFromEvent(ev) {
@@ -800,6 +911,8 @@
       if (readout) readout.textContent = `Az: ${Math.round(az)}°`;
       this._renderNeedle(az);
       this._renderBeamTriangle(realAz);
+      const windDirection = attrs.wind_direction != null ? Number(attrs.wind_direction) : null;
+      this._renderWindArrow(windDirection, !!attrs.wind_alert);
 
       for (const preset of PRESET_BUTTONS) {
         const btn = this.shadowRoot.getElementById(`preset-${preset.id}`);

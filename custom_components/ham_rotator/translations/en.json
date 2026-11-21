@@ -47,11 +47,14 @@
       },
       "storm": {
         "title": "Storm position",
-        "description": "Set an azimuth the antenna automatically turns to once wind speed rises above the configured threshold. Leave the wind sensor field empty to disable this.",
+        "description": "Set an azimuth the antenna automatically turns to once wind speed rises above the configured threshold. Leave the wind sensor field empty to disable this. If an averaged wind direction sensor is set, the antenna turns to track the wind instead of the fixed storm azimuth.",
         "data": {
-          "storm_azimuth": "Storm position azimuth (degrees)",
+          "storm_azimuth": "Storm position azimuth (degrees) — fallback if no wind direction sensor is set",
           "wind_speed_entity": "Wind speed sensor",
-          "wind_speed_threshold": "Wind threshold (same unit as the sensor)"
+          "wind_speed_threshold": "Wind threshold (same unit as the sensor)",
+          "wind_direction_entity": "Wind direction sensor (realtime, shown as an arrow on the card)",
+          "wind_direction_avg_entity": "Wind direction sensor (10-minute average, used for storm turns)",
+          "storm_turn_mode": "Storm turn direction"
         }
       },
       "antenna": {
